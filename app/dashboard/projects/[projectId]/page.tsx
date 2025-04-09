@@ -25,6 +25,7 @@ const ProjectDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [showActions, setShowActions] = useState(false);
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
   const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
   const [addFileModalOpen, setAddFileModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -32,6 +33,9 @@ const ProjectDetailPage = () => {
   const [selectedProject, setSelectedProject] = useState<TProject | null>(null);
 
   // Open the modals
+  const openAddUserModal = () => {
+    setAddUserModalOpen(true);
+  };
   const openAddTaskModal = () => {
     setAddTaskModalOpen(true);
   };
@@ -48,6 +52,11 @@ const ProjectDetailPage = () => {
   };
 
   // Handle modal actions
+  const handleAddUser = (newUser: TUser) => {
+    console.log("New Task Data:", newUser);
+    // Add task logic here
+    setAddUserModalOpen(false);
+  };
   const handleAddTask = (newTask: TTask) => {
     console.log("New Task Data:", newTask);
     // Add task logic here
@@ -101,6 +110,9 @@ const ProjectDetailPage = () => {
   };
 
   // Close the modals
+  const closeAddUserModal = () => {
+    setAddUserModalOpen(false);
+  };
   const closeAddTaskModal = () => {
     setAddTaskModalOpen(false);
   };
@@ -282,6 +294,28 @@ const ProjectDetailPage = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* User Section */}
+      <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
+        <div className="flex items-center pb-2">
+          <SectionHeader sectionKey="users" />
+          <div className="w-auto">
+            <ActionButton
+              label="Add User"
+              onClick={openAddTaskModal}
+              icon="task"
+            />
+          </div>
+        </div>
+        {/* {tasksList && tasksList.length > 0 && (
+          <TaskTable
+            onViewTask={handleViewTask}
+            tasks={tasksList}
+            px="2"
+            py="2"
+          />
+        )} */}
       </div>
 
       {/* Tasks Section */}

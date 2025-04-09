@@ -58,7 +58,7 @@ const OrganizationCard: React.FC<OrganizationCardProps> = ({
             <FaProjectDiagram className="w-6 h-6 text-purple-600" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-semibold text-gray-800">27</span>
+            <span className="text-lg font-semibold text-gray-800">{organization.projects?.length}</span>
             <span className="text-sm text-gray-500">Projects</span>
           </div>
         </div>

@@ -3,8 +3,9 @@ import {
     MdDashboard, MdPeople, MdOutlineWorkspacePremium, MdNotifications, MdMessage, MdPhoto, 
     MdReport, MdSupervisorAccount 
   } from "react-icons/md"; 
-  import { FaUserShield, FaProjectDiagram } from "react-icons/fa";
+  import { FaUserShield, FaProjectDiagram, FaCogs } from "react-icons/fa";
   import { FaBuildingColumns } from "react-icons/fa6";
+  import { IoMdChatbubbles } from "react-icons/io";
 
 type IconMapping = {
   [key: string]: React.ComponentType<{ className?: string }>;
@@ -15,6 +16,7 @@ const iconMapping: IconMapping = {
   users: MdPeople,
   premiumUsers: MdOutlineWorkspacePremium,
   notifications: MdNotifications,
+  chatGroup: IoMdChatbubbles,
   messages: MdMessage,
   photoReview: MdPhoto,
   reportsBans: MdReport,
@@ -22,6 +24,7 @@ const iconMapping: IconMapping = {
   manageAdmins: FaUserShield,
   oraganizations: FaBuildingColumns,
   projects: FaProjectDiagram,
+  services: FaCogs,
 };
 
 interface NavItemProps {

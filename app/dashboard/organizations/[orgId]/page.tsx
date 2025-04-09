@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TOrganization, TUser } from "@/app/constants/type";
+import { TOrganization, TProject, TUser } from "@/app/constants/type";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/app/redux/store";
 import {
@@ -18,6 +18,8 @@ import { fetchUsersByOrganizationId } from "@/app/redux/slices/userSlice";
 import UserTable from "@/app/components/user_related/UsersTable";
 import AddUser from "@/app/components/user_related/AddUser";
 import { useRouter } from "next/navigation";
+import { fetchProjects } from "@/app/redux/slices/projectSlice";
+import ProjectTable from "@/app/components/project_related/ProjectTable";
 
 const OrganizationDetailsPage = () => {
   const router = useRouter();
@@ -25,6 +27,7 @@ const OrganizationDetailsPage = () => {
   const { orgId } = useParams() as { orgId: string };
   const [organization, setOrganization] = useState<TOrganization | null>(null);
   const [usersList, setUserList] = useState<TUser[]>([]);
+  const [projectList, setProjectList] = useState<TProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,6 +102,10 @@ const OrganizationDetailsPage = () => {
     router.push(`${orgId}/${user._id}`);
   };
 
+  const handleViewProject = (project: TProject) => {
+    router.push(`${orgId}/${project._id}`);
+  };
+
   // Close the modals
   const closeAddAdminModal = () => {
     setAddAdminModalOpen(false);
@@ -133,6 +140,14 @@ const OrganizationDetailsPage = () => {
           );
           if (fetchUsersByOrganizationId.fulfilled.match(userResponse)) {
             setUserList(userResponse.payload);
+          } else {
+            setError("Failed to fetch user list");
+          }
+
+          const projectResponse = await dispatch(fetchProjects(orgId));
+          if (fetchProjects.fulfilled.match(projectResponse)) {
+            setProjectList(projectResponse.payload);
+            console.log("projectList: ", projectResponse.payload);
           } else {
             setError("Failed to fetch user list");
           }
@@ -347,7 +362,7 @@ const OrganizationDetailsPage = () => {
         )}
       </div>
       {/* Projects Section */}
-      <div className="p-6 bg-white rounded-lg shadow-md">
+      <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
         <div className="flex items-center pb-2">
           <SectionHeader sectionKey="projects" />
           <div className="w-auto">
@@ -358,24 +373,16 @@ const OrganizationDetailsPage = () => {
             />
           </div>
         </div>
-        {/*
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Projects
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {organization.projects.map((project) => (
-                <div key={project._id} className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {project.name}
-                  </h3>
-                  <p className="text-gray-600">{project.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div> */}
+        {projectList && projectList.length > 0 && (
+          <ProjectTable
+            onViewProject={handleViewProject}
+            projects={projectList}
+            px="2"
+            py="2"
+          />
+        )}
       </div>
+
       {addAdminModalOpen && (
         <AddUser
           closeAddUser={closeAddAdminModal}

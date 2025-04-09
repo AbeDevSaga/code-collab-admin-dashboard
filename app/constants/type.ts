@@ -22,6 +22,24 @@ export type TLanguage = {
   };
 };
 
+export type TChatGroup = {
+  _id?: string;
+  name: string;
+  description?: string;
+  isGroupChat?: boolean;
+  avatar?: string;
+  organization?: string;
+  participants?: TUser[];
+  lastMessage?: string;
+  invitationLink?: string;
+  lastMessageSender?: string;
+  invitationLinkExpires?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  isPublic?: boolean;
+  createdBy?: TUser;
+}
+
 export type TUser = {
   _id?: string;
   username: string;
@@ -33,7 +51,7 @@ export type TUser = {
   isPremium?: boolean;
   profileImage?: string;
   services?: TService[];
-  chatGroups?: TChatGroups[];
+  chatGroups?: TChatGroup[];
   file?: TFile[];
   projects?: TProject[];
   tasks?: TTask[];
@@ -108,10 +126,6 @@ export type TProject = {
   allowExternalContributors?: boolean;
 };
 export type TTask = {
-  _id: string;
-  name: string;
-};
-export type TChatGroups = {
   _id: string;
   name: string;
 };

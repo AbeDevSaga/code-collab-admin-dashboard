@@ -6,6 +6,7 @@ import serviceReducer from "./slices/serviceSlice";
 import organizationReducer from "./slices/orgSlice";
 import projectReducer from "./slices/projectSlice";
 import userReducer from "./slices/userSlice";
+import chatGroupReducer from "./slices/chatGroupSlice";
 import themeReducer from './slices/themeSlice';
 
 // Persist configuration
@@ -24,6 +25,7 @@ const store = configureStore({
     organization: organizationReducer,
     project:projectReducer,
     user: userReducer,
+    chatGroup: chatGroupReducer,
     theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>

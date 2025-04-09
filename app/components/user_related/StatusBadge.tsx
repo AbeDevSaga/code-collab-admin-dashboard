@@ -1,7 +1,6 @@
 import React from "react";
-
 interface StatusBadgeProps {
-  status: "active" | "inactive" | "banned" | "pending";
+  status: "active" | "inactive" | "banned" | "pending" | "completed" | "archived";
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
@@ -14,6 +13,10 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
           ? "bg-red-100 text-red-800"
           : status === "banned"
           ? "bg-gray-100 text-gray-800"
+          : status === "completed"
+          ? "bg-blue-100 text-blue-800"
+          : status === "archived"
+          ? "bg-purple-100 text-purple-800"
           : "bg-yellow-100 text-yellow-800"
       }`}
     >

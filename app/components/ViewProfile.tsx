@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ActionButton from "./ActionButton";
 import { TUser } from "../constants/type";
 import { FaUserAlt } from "react-icons/fa";
+import { updateUser } from "../redux/slices/userSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../redux/store";
 
 interface ViewUserProps {
   user: TUser;
@@ -9,6 +12,7 @@ interface ViewUserProps {
 }
 
 const ViewProfile: React.FC<ViewUserProps> = ({ user, closeViewUser }) => {
+  const dispatch = useDispatch<AppDispatch>();
   // State for user details
   const [name, setName] = useState(user.username);
   const [email, setEmail] = useState(user.email);
@@ -20,6 +24,10 @@ const ViewProfile: React.FC<ViewUserProps> = ({ user, closeViewUser }) => {
 
   // State for profile image upload
   const [profileImage, setProfileImage] = useState(user.profileImage);
+
+  useEffect(() => {
+    setProfileImage(user.profileImage);
+  }, [user.profileImage]);
 
   // Handle updating user details
   const handleUpdateDetails = () => {
@@ -41,13 +49,21 @@ const ViewProfile: React.FC<ViewUserProps> = ({ user, closeViewUser }) => {
     // Add logic to update password
   };
 
-  // Handle profile image upload (UI only for now)
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    console.log("user id: ", user._id);
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
+        if (user._id && reader.result) {
+          dispatch(
+            updateUser({
+              id: user._id,
+              userData: { profileImage: reader.result as string },
+            })
+          );
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -75,15 +91,16 @@ const ViewProfile: React.FC<ViewUserProps> = ({ user, closeViewUser }) => {
               alt={user.username}
               className="w-full h-full rounded-full object-cover border-2 border-gray-200"
             /> */}
-            {user?.profileImage ? (
+            {profileImage ? (
               <img
-                src={profileImage}
+                src={profileImage} // This should be updated after image upload
                 alt={user.username}
                 className="w-full h-full rounded-full object-cover border-2 border-gray-200"
               />
             ) : (
               <FaUserAlt className="w-full h-full rounded-full object-cover border-2 border-gray-200" />
             )}
+
             {/* Upload Button Overlay */}
             <label
               htmlFor="profileImageUpload"
