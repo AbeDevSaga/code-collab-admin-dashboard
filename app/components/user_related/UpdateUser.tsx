@@ -1,20 +1,32 @@
 import { TUser } from "@/app/constants/type";
+import { updates } from "@/app/constants/update";
 import React from "react";
 
-
-interface ViewUserProps {
+interface UpdateUserProps {
   user: TUser;
-  closeDeleteUser: () => void;
+  onAddUser: (userData: TUser) => void; // Callback for add action
+  section?: string;
+  closeUpdateUser: () => void;
 }
 
-const DeleteUser: React.FC<ViewUserProps> = ({ user, closeDeleteUser }) => {
+const UpdateUser: React.FC<UpdateUserProps> = ({ user,section, onAddUser, closeUpdateUser }) => {
+    const update = section && updates[section as keyof typeof updates];
+  
+    const title = typeof update === "object" ? update.section : "";
+    const headline = typeof update === "object" ? update.headline : "";
+
+    const isAddUser = title === "Add User";
+    const bg_color = isAddUser ? "bg-green-500" : "bg-red-500";
+    const border_color = isAddUser ? "border-green-500" : "border-red-500";
+    const hover_text_color = isAddUser ? "hover:text-green-500" : "hover:text-red-500";
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
       <div className="relative bg-white rounded-lg shadow-lg py-6 w-full max-w-md">
         {/* Close Button */}
         <div className="absolute top-2 right-2">
           <button
-            onClick={closeDeleteUser}
+            onClick={closeUpdateUser}
             className="flex text-2xl items-center justify-center w-6 h-6 rounded-full shadow-xl text-red-500 hover:text-red-700 bg-white"
           >
             &times;
@@ -59,13 +71,14 @@ const DeleteUser: React.FC<ViewUserProps> = ({ user, closeDeleteUser }) => {
           </div>
           {/* User Date and Status */}
           <div className="flex-col items-center space-y-4">
-            <p>Are you sure you want to delete these user</p>
+            <p>{headline}</p>
             <div className="flex text-white space-x-2">
               <p className="w-full text-center cursor-pointer px-4 py-2 bg-primary rounded-lg hover:text-primary hover:bg-white transition-all duration-300 border border-primary shadow-xl">
                 Cancel
               </p>
-              <p className="w-full text-center cursor-pointer px-4 py-2 bg-red-500 rounded-lg hover:text-red-500 hover:bg-white transition transition-all duration-300 border border-red-500 shadow-xl">
-                Delete
+              <p className={`w-full text-center cursor-pointer px-4 py-2 ${bg_color} rounded-lg ${hover_text_color} hover:bg-white transition transition-all duration-300 border ${border_color} shadow-xl`}
+                onClick={() => onAddUser(user)}>
+                {title}
               </p>
             </div>
           </div>
@@ -75,4 +88,4 @@ const DeleteUser: React.FC<ViewUserProps> = ({ user, closeDeleteUser }) => {
   );
 };
 
-export default DeleteUser;
+export default UpdateUser;

@@ -20,15 +20,12 @@ export const fetchAllProjects = createAsyncThunk(
   "projects/fetchAllProjects",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<TProject[]>(
-        `${API_URL}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        }
-      );
-      console.log("projects: ", response.data)
+      const response = await axios.get<TProject[]>(`${API_URL}`, {
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+      });
+      console.log("projects: ", response.data);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -140,6 +137,62 @@ export const deleteProject = createAsyncThunk(
   }
 );
 
+export const addUserToProject = createAsyncThunk(
+  "projects/addUser",
+  async (
+    {
+      projectId,
+      userId,
+      role,
+      addedBy,
+    }: {
+      projectId: string;
+      userId: string;
+      role?: string;
+      addedBy: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/add_user/${projectId}`,
+        { userId, role, addedBy },
+        {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const removeUserFromProject = createAsyncThunk(
+  "projects/removeUser",
+  async (
+    { projectId, userId }: { projectId: string; userId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/remove_user/${projectId}`,
+        { userId },
+        {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 // Slice
 const initialState: ProjectState = {
   projects: [],
@@ -165,10 +218,13 @@ const projectSlice = createSlice({
           state.projects = action.payload;
         }
       )
-      .addCase(fetchAllProjects.rejected, (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        fetchAllProjects.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
       .addCase(fetchProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -225,6 +281,68 @@ const projectSlice = createSlice({
           state.projects = state.projects.filter(
             (project) => project._id !== action.payload
           );
+        }
+      )
+      .addCase(addUserToProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        addUserToProject.fulfilled,
+        (state, action: PayloadAction<TProject>) => {
+          state.loading = false;
+          // Update the current project if it's the one being modified
+          if (
+            state.currentProject &&
+            state.currentProject._id === action.payload._id
+          ) {
+            state.currentProject = action.payload;
+          }
+          // Update the project in the projects array
+          const index = state.projects.findIndex(
+            (project) => project._id === action.payload._id
+          );
+          if (index !== -1) {
+            state.projects[index] = action.payload;
+          }
+        }
+      )
+      .addCase(
+        addUserToProject.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
+      .addCase(removeUserFromProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        removeUserFromProject.fulfilled,
+        (state, action: PayloadAction<TProject>) => {
+          state.loading = false;
+          // Update the current project if it's the one being modified
+          if (
+            state.currentProject &&
+            state.currentProject._id === action.payload._id
+          ) {
+            state.currentProject = action.payload;
+          }
+          // Update the project in the projects array
+          const index = state.projects.findIndex(
+            (project) => project._id === action.payload._id
+          );
+          if (index !== -1) {
+            state.projects[index] = action.payload;
+          }
+        }
+      )
+      .addCase(
+        removeUserFromProject.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload;
         }
       );
   },

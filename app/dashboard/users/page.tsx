@@ -1,6 +1,5 @@
 "use client";
 import ActionButton from "@/app/components/ActionButton";
-import AddUser from "@/app/components/user_related/AddUser";
 import SectionHeader from "@/app/components/SectionHeader";
 import UserTable from "@/app/components/user_related/UsersTable";
 import React, { useEffect, useState } from "react";
@@ -9,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/app/redux/store";
 import { TUser } from "@/app/constants/type";
 import { useRouter } from "next/navigation";
+import CreateUser from "@/app/components/user_related/CreateUser";
 
 function users() {
   const router = useRouter();
@@ -57,7 +57,7 @@ function users() {
       </div>
       <UserTable onViewUser={handleViewUser} users = {usersList} px="4" py="4"/>
       {isAddUserOpen && (
-        <AddUser closeAddUser={handleCloseAddUser} onAddUser={handleSaveUser} role="User"/>
+        <CreateUser closeAddUser={handleCloseAddUser} onAddUser={handleSaveUser} role="User"/>
       )}
     </div>
   );

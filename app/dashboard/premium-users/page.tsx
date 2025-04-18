@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/app/redux/store";
 import { TUser } from "@/app/constants/type";
 import { useRouter } from "next/navigation";
+import CreateUser from "@/app/components/user_related/CreateUser";
 
 function PremiumUsers() {
   const router = useRouter();
@@ -56,7 +57,7 @@ function PremiumUsers() {
       </div>
       <UserTable onViewUser={handleViewUser} users={usersList} px="4" py="4" />
       {isAddUserOpen && (
-        <AddUser
+        <CreateUser
           closeAddUser={handleCloseAddUser}
           onAddUser={handleSaveUser}
           role="Premuim User"

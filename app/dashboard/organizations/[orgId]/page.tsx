@@ -20,6 +20,7 @@ import AddUser from "@/app/components/user_related/AddUser";
 import { useRouter } from "next/navigation";
 import { fetchProjects } from "@/app/redux/slices/projectSlice";
 import ProjectTable from "@/app/components/project_related/ProjectTable";
+import CreateUser from "@/app/components/user_related/CreateUser";
 
 const OrganizationDetailsPage = () => {
   const router = useRouter();
@@ -346,7 +347,7 @@ const OrganizationDetailsPage = () => {
           <SectionHeader sectionKey="users" />
           <div className="w-auto">
             <ActionButton
-              label="Add Users"
+              label="Create Users"
               onClick={openAddUserModal}
               icon="user"
             />
@@ -384,7 +385,7 @@ const OrganizationDetailsPage = () => {
       </div>
 
       {addAdminModalOpen && (
-        <AddUser
+        <CreateUser
           closeAddUser={closeAddAdminModal}
           onAddUser={handleAddAdmin}
           orgId={orgId}

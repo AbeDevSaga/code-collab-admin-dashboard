@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import ActionButton from "../ActionButton";
 import { TUser } from "@/app/constants/type";
 
-interface AddUserProps {
+interface CreateUserProps {
   projectId?: string;
   orgId?: string; 
   role?: string;
@@ -11,8 +11,7 @@ interface AddUserProps {
   onAddUser: (userData: TUser) => void; // Callback to add a new user
 }
 
-const AddUser: React.FC<AddUserProps> = ({
-  projectId,
+const CreateUser: React.FC<CreateUserProps> = ({
   orgId,
   role,
   closeAddUser,
@@ -44,9 +43,6 @@ const AddUser: React.FC<AddUserProps> = ({
     };
 
     // Add organization ID only if it is provided
-    // if(projectId) {
-    //   newUser.projects = projectId;
-    // }
     if (orgId) {
       newUser.organization = orgId;
     }
@@ -154,4 +150,4 @@ const AddUser: React.FC<AddUserProps> = ({
   );
 };
 
-export default AddUser;
+export default CreateUser;

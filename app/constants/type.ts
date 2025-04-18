@@ -14,6 +14,33 @@ export type TProfile = {
   date: string;
 };
 
+export type TUpdates = {
+  user_to_project: TSection;
+  user_from_project: TSection;
+  user_to_organization: TSection;
+  user_from_organization: TSection;
+  user_to_team: TSection;
+  user_from_team: TSection;
+  user_to_task: TSection;
+  user_from_task: TSection;
+  user_to_file: TSection;
+  user_from_file: TSection;
+  user_to_chat: TSection;
+  user_from_chat: TSection;
+  user_to_message: TSection;
+  user_from_message: TSection;
+  project_to_organization: TSection;
+  project_from_organization: TSection;
+  add_to_team: TSection;
+  remove_from_team: TSection;
+  add_to_task: TSection;
+  remove_from_task: TSection;
+  add_to_file: TSection;
+  remove_from_file: TSection;
+  add_to_chat: TSection;
+  remove_from_chat: TSection;
+}
+
 export type TLanguage = {
   country: {
     image: StaticImageData;
@@ -110,7 +137,7 @@ export type TProject = {
   organization: TOrganization;
   teamMembers?: {
     user: TUser;
-    role: "admin" | "manager" | "developer" | "viewer";
+    role: TRole;
     addedAt: Date;
     addedBy: TUser;
   }[];

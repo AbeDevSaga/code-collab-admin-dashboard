@@ -2,9 +2,10 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TProject, TUser, TTask, TFile } from "@/app/constants/type";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/app/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/app/redux/store";
 import {
+  addUserToProject,
   deleteProject,
   fetchProjectById,
   updateProject,
@@ -13,15 +14,23 @@ import SectionHeader from "@/app/components/SectionHeader";
 import ActionButton from "@/app/components/ActionButton";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { useRouter } from "next/navigation";
+import AddUser from "@/app/components/user_related/AddUser";
+import CreateUser from "@/app/components/user_related/CreateUser";
+import { fetchUsersByOrganizationId } from "@/app/redux/slices/userSlice";
+import OrganizationUsers from "@/app/components/org_related/OrganizationUsers";
+import { useLoading } from "@/app/context/LoadingContext";
 
 const ProjectDetailPage = () => {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
   const { projectId } = useParams() as { projectId: string };
   const [project, setProject] = useState<TProject | null>(null);
+  const [usersList, setUserList] = useState<TUser[]>([]);
+  const [projectUsers, setProjectUsers] = useState<TUser[]>([]);
   const [tasksList, setTasksList] = useState<TTask[]>([]);
   const [filesList, setFilesList] = useState<TFile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {setLoading} = useLoading();
   const [error, setError] = useState<string | null>(null);
 
   const [showActions, setShowActions] = useState(false);
@@ -51,6 +60,9 @@ const ProjectDetailPage = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const handleViewUser = (user: TUser) => {
+    router.push(`${projectId}/${user._id}`);
+  };
   // Handle modal actions
   const handleAddUser = (newUser: TUser) => {
     console.log("New Task Data:", newUser);
@@ -87,6 +99,7 @@ const ProjectDetailPage = () => {
     }
   };
 
+
   const handleDeleteProject = async () => {
     console.log("Deleting Project:", selectedProject);
     const resultAction = await dispatch(
@@ -98,6 +111,25 @@ const ProjectDetailPage = () => {
       router.push("/projects"); // Redirect to projects page after deletion
     } else {
       console.error("Failed to delete Project:", resultAction.payload);
+    }
+  };
+
+  // Handle add user to project
+  const handleAddUserToProject = async (newUser: TUser, role?: string) => {
+    console.log("New User to add to Project:", newUser);
+    const resultAction = await dispatch(
+      addUserToProject({
+        projectId: projectId,
+        userId: newUser._id || "",
+        role: role || "Developer",
+        addedBy: user?._id || "",
+      })
+    );
+    if (addUserToProject.fulfilled.match(resultAction)) {
+      console.log("User added to Project successfully:", resultAction.payload);
+      setAddUserModalOpen(false);
+    } else {
+      console.error("Failed to add User to Project:", resultAction.payload);
     }
   };
 
@@ -138,25 +170,38 @@ const ProjectDetailPage = () => {
           const projectResponse = await dispatch(fetchProjectById(projectId));
           if (fetchProjectById.fulfilled.match(projectResponse)) {
             setProject(projectResponse.payload);
+            //setProjectUsers(projectResponse.payload.teamMembers);
           } else if (fetchProjectById.rejected.match(projectResponse)) {
             setError("Failed to fetch project data");
           }
 
+          // Fetch users for the organization
+          // Assuming the project object has an organization property
+          const organizationId = (projectResponse.payload as TProject).organization._id;
+          if (organizationId) {
+            const usersResponse = await dispatch(fetchUsersByOrganizationId(organizationId));
+            if (fetchUsersByOrganizationId.fulfilled.match(usersResponse)) {
+              setUserList(usersResponse.payload);
+            } else {
+              setError("Failed to fetch user list");
+            }
+          }
+
           // Fetch tasks for the project
-        //   const tasksResponse = await dispatch(fetchTasksByProjectId(projectId));
-        //   if (fetchTasksByProjectId.fulfilled.match(tasksResponse)) {
-        //     setTasksList(tasksResponse.payload);
-        //   } else {
-        //     setError("Failed to fetch tasks");
-        //   }
+          //   const tasksResponse = await dispatch(fetchTasksByProjectId(projectId));
+          //   if (fetchTasksByProjectId.fulfilled.match(tasksResponse)) {
+          //     setTasksList(tasksResponse.payload);
+          //   } else {
+          //     setError("Failed to fetch tasks");
+          //   }
 
           // Fetch files for the project
-        //   const filesResponse = await dispatch(fetchFilesByProjectId(projectId));
-        //   if (fetchFilesByProjectId.fulfilled.match(filesResponse)) {
-        //     setFilesList(filesResponse.payload);
-        //   } else {
-        //     setError("Failed to fetch files");
-        //   }
+          //   const filesResponse = await dispatch(fetchFilesByProjectId(projectId));
+          //   if (fetchFilesByProjectId.fulfilled.match(filesResponse)) {
+          //     setFilesList(filesResponse.payload);
+          //   } else {
+          //     setError("Failed to fetch files");
+          //   }
         } catch (err) {
           setError("An unexpected error occurred");
         } finally {
@@ -166,12 +211,7 @@ const ProjectDetailPage = () => {
     };
 
     fetchData();
-  }, [dispatch, projectId]);
-
-  // Handle loading state
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  }, [dispatch, projectId, setLoading]);
 
   // Handle error state
   if (error) {
@@ -240,7 +280,9 @@ const ProjectDetailPage = () => {
           {/* Created By */}
           {project.createdBy && (
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h2 className="text-sm font-semibold text-gray-500">Created By</h2>
+              <h2 className="text-sm font-semibold text-gray-500">
+                Created By
+              </h2>
               <p className="text-gray-800">{project.createdBy.username}</p>
             </div>
           )}
@@ -300,13 +342,6 @@ const ProjectDetailPage = () => {
       <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
         <div className="flex items-center pb-2">
           <SectionHeader sectionKey="users" />
-          <div className="w-auto">
-            <ActionButton
-              label="Add User"
-              onClick={openAddTaskModal}
-              icon="task"
-            />
-          </div>
         </div>
         {/* {tasksList && tasksList.length > 0 && (
           <TaskTable
@@ -316,6 +351,28 @@ const ProjectDetailPage = () => {
             py="2"
           />
         )} */}
+      </div>
+      <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
+        <div className="flex items-center pb-2">
+          <SectionHeader sectionKey="users" />
+          <div className="w-auto">
+            <ActionButton
+              label="Create User"
+              onClick={openAddUserModal}
+              icon="task"
+            />
+          </div>
+        </div>
+        {usersList && usersList.length > 0 && (
+          <OrganizationUsers
+            onViewUser={handleViewUser}
+            onAddUser={handleAddUserToProject}
+            section={"user_to_project"}
+            users={usersList}
+            px="2"
+            py="2"
+          />
+        )}
       </div>
 
       {/* Tasks Section */}
@@ -361,8 +418,15 @@ const ProjectDetailPage = () => {
           />
         )} */}
       </div>
-
-      {/* Modals
+      {/* Modals */}
+      {addUserModalOpen && (
+        <CreateUser
+          closeAddUser={closeAddUserModal}
+          onAddUser={handleAddUser}
+          projectId={projectId}
+        />
+      )}
+      {/*
       {addTaskModalOpen && (
         <AddTask
           closeAddTask={closeAddTaskModal}
