@@ -9,17 +9,32 @@ import { AppDispatch, RootState } from "@/app/redux/store";
 import { TUser } from "@/app/constants/type";
 import { useRouter } from "next/navigation";
 import CreateUser from "@/app/components/user_related/CreateUser";
+import { useLoading } from "@/app/context/LoadingContext";
 
 function users() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const usersList = useSelector((state: RootState) => state.user.users);
+  const { setLoading } = useLoading();
+  const [isFetching, setIsFetching] = useState(true);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false); // State to control the modal
 
   useEffect(() => {
-    dispatch(fetchAllUsers());
-  }, [dispatch]);
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setIsFetching(true);
+        await dispatch(fetchAllUsers());
+      } finally {
+        setLoading(false);
+        setIsFetching(false);
+      }
+    };
 
+    fetchUsers();
+  }, [dispatch, setLoading]);
+
+  // Function to handle the Add User button click
   const handleAddUser = () => {
     console.log("Opening Add User modal...");
     setIsAddUserOpen(true); // Open the modal
@@ -33,13 +48,14 @@ function users() {
   };
 
   const handleSaveUser = async (newUser: TUser) => {
-    console.log("New User Data:", newUser);
-    const resultAction = await dispatch(createUser(newUser));
-    if (createUser.fulfilled.match(resultAction)) {
-      console.log("User added successfully:", resultAction.payload);
-      setIsAddUserOpen(false); // Close the modal after saving
-    } else {
-      console.error("Failed to add user:", resultAction.payload);
+    try {
+      setLoading(true);
+      const resultAction = await dispatch(createUser(newUser));
+      if (createUser.fulfilled.match(resultAction)) {
+        setIsAddUserOpen(false);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,9 +71,20 @@ function users() {
           />
         </div>
       </div>
-      <UserTable onViewUser={handleViewUser} users = {usersList} px="4" py="4"/>
+      {!isFetching && (
+        <UserTable
+          onViewUser={handleViewUser}
+          users={usersList}
+          px="4"
+          py="4"
+        />
+      )}
       {isAddUserOpen && (
-        <CreateUser closeAddUser={handleCloseAddUser} onAddUser={handleSaveUser} role="User"/>
+        <CreateUser
+          closeAddUser={handleCloseAddUser}
+          onAddUser={handleSaveUser}
+          role="User"
+        />
       )}
     </div>
   );

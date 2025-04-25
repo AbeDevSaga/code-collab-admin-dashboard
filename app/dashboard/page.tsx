@@ -1,17 +1,19 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import CountCard from "../components/CountCard";
 import { statsData } from "../constants/dashboardStats";
 import { useUserData } from "../redux/selectionFunctions";
 import { getStatValue } from "../lib/helperFunctions";
+import { useLoading } from "../context/LoadingContext";
 
 function Dashboard() {
   const { 
     users, 
     premiumUsers,
-    loading, 
     error,
   } = useUserData();
+  const {setLoading} = useLoading(); // Assuming you have a loading context
+  const [calculationsComplete, setCalculationsComplete] = React.useState(false);
 
   // Calculate derived data
   const activeUsers = useMemo(() => 
@@ -38,14 +40,15 @@ function Dashboard() {
     [users, premiumUsers, activeUsers, newUsers]
   );
 
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-white">
-        <div className="text-2xl">Loading...</div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setCalculationsComplete(true);
+      setLoading(false);
+    }, 0); // Using setTimeout to ensure memo completes
+    
+    return () => clearTimeout(timer);
+  }, [updatedStatsData, setLoading]);
 
   // Handle error state
   if (error) {
@@ -56,6 +59,10 @@ function Dashboard() {
     );
   }
 
+  if (!calculationsComplete) {
+    return null;
+  }
+  
   return (
     <div className="w-full h-full text-white">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-4">

@@ -12,6 +12,7 @@
     "@faker-js/faker": "^9.5.0",
     "@reduxjs/toolkit": "^2.6.0",
     "axios": "^1.8.1",
+    "framer-motion": "^12.9.1",
     "next": "15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

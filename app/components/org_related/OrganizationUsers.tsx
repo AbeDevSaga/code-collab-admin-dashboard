@@ -9,7 +9,7 @@ import UpdateUser from "../user_related/UpdateUser";
 
 interface OrganizationUsersProps {
   onViewUser: (userData: TUser) => void;
-  onAddUser: (userData: TUser, role?:string) => void; // Define the onAddUser prop
+  onAddUser: (userData: TUser) => void; // Define the onAddUser prop
   users: TUser[]; // Define the users prop
   section?: string;
   px: string;

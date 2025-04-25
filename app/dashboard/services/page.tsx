@@ -10,12 +10,15 @@ import DeleteService from "@/app/components/service_related/DeleteService";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/app/redux/store";
 import { fetchServices, updateService, createService, deleteService } from "@/app/redux/slices/serviceSlice";
+import { useLoading } from "@/app/context/LoadingContext";
 
 function Services() {
   const dispatch = useDispatch<AppDispatch>();
   const servicesList = useSelector(
     (state: RootState) => state.service.services
   ); // Access services from Redux store
+  const { setLoading } = useLoading();
+  const [isFetching, setIsFetching] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -23,8 +26,18 @@ function Services() {
 
   // Fetch services on component mount
   useEffect(() => {
-    dispatch(fetchServices());
-  }, [dispatch]);
+    const loadServices = async () => {
+      try {
+        setLoading(true);
+        setIsFetching(true);
+        await dispatch(fetchServices());
+      } finally {
+        setLoading(false);
+        setIsFetching(false);
+      }
+    };
+    loadServices();
+  }, [dispatch, setLoading]);
 
   // Open the modals
   const openAddModal = () => {
@@ -40,43 +53,55 @@ function Services() {
   };
 
   // Handle modal actions
-  const handleAddServices = async (newService: TService) => {
-    console.log("Adding new Services...", newService);
-    const resultAction = await dispatch(createService(newService));
-    if (createService.fulfilled.match(resultAction)) {
-      console.log("Service added successfully:", resultAction.payload);
-      setIsAddModalOpen(false);
-    } else {
-      console.error("Failed to add service:", resultAction.payload);
+  const handleAddService = async (newService: TService) => {
+    try {
+      setLoading(true);
+      const resultAction = await dispatch(createService(newService));
+      if (createService.fulfilled.match(resultAction)) {
+        setIsAddModalOpen(false);
+        // Refresh services list
+        await dispatch(fetchServices());
+      }
+    } finally {
+      setLoading(false);
     }
   };
   const handleUpdateService = async (updatedService: TService) => {
-    console.log("updatedService: ", updatedService)
-    if (selectedService) {
-      const resultAction = await dispatch(
-        updateService({
-          id: selectedService._id || "",
-          serviceData: updatedService,
-        })
-      );
-      if (updateService.fulfilled.match(resultAction)) {
-        console.log("Service updated successfully:", resultAction.payload);
-        setIsUpdateModalOpen(false);
-      } else {
-        console.error("Failed to update service:", resultAction.payload);
+    try {
+      setLoading(true);
+      if (selectedService) {
+        const resultAction = await dispatch(
+          updateService({
+            id: selectedService._id || "",
+            serviceData: updatedService,
+          })
+        );
+        if (updateService.fulfilled.match(resultAction)) {
+          setIsUpdateModalOpen(false);
+          // Refresh services list
+          await dispatch(fetchServices());
+        }
       }
+    } finally {
+      setLoading(false);
     }
   };
-  const handleDeleteService = async() => {
-    console.log("Deleting service:", selectedService);
-    const resultAction = await dispatch(deleteService(selectedService?._id || ""));
-    if (deleteService.fulfilled.match(resultAction)) {
-      console.log("Service deleted successfully:", resultAction.payload);
-      setIsDeleteModalOpen(false);
-    } else {
-      console.error("Failed to delete service:", resultAction.payload);
+  const handleDeleteService = async () => {
+    try {
+      setLoading(true);
+      if (selectedService) {
+        const resultAction = await dispatch(deleteService(selectedService._id || ""));
+        if (deleteService.fulfilled.match(resultAction)) {
+          setIsDeleteModalOpen(false);
+          // Refresh services list
+          await dispatch(fetchServices());
+        }
+      }
+    } finally {
+      setLoading(false);
     }
   };
+
 
   // Close the modals
   const closeAddModal = () => {
@@ -101,7 +126,7 @@ function Services() {
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {!isFetching && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {servicesList.map((service, index) => (
           <div key={index} className="self-start">
             <ServiceCard
@@ -111,11 +136,11 @@ function Services() {
             />
           </div>
         ))}
-      </div>
+      </div>}
       {isAddModalOpen && (
         <AddService
           closeAddService={closeAddModal}
-          onAddService={handleAddServices}
+          onAddService={handleAddService}
         />
       )}
       {isUpdateModalOpen && selectedService && (

@@ -12,6 +12,7 @@ import {
 import OrganizationCard from "@/app/components/org_related/OrganizationCard";
 import AddOrganization from "@/app/components/org_related/AddOrganization";
 import { useRouter } from "next/navigation";
+import { useLoading } from "@/app/context/LoadingContext";
 
 function Organizations() {
   const router = useRouter();
@@ -19,12 +20,25 @@ function Organizations() {
   const organizationList = useSelector(
     (state: RootState) => state.organization.organizations
   );
+  const { setLoading } = useLoading();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+
 
   // Fetch services on component mount
   useEffect(() => {
-    dispatch(fetchOrganizations());
-  }, [dispatch]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setIsFetching(true);
+        await dispatch(fetchOrganizations());
+      } finally {
+        setLoading(false);
+        setIsFetching(false);
+      }
+    };
+    fetchData();
+  }, [dispatch, setLoading]);
 
   // Open the modals
   const openAddModal = () => {
@@ -32,14 +46,17 @@ function Organizations() {
   };
 
   // Handle modal actions
-  const handleAddOrganization = async (newService: TOrganization) => {
-    console.log("Adding new Organization...", newService);
-    const resultAction = await dispatch(createOrganization(newService));
-    if (createOrganization.fulfilled.match(resultAction)) {
-      console.log("Organization added successfully:", resultAction.payload);
-      setIsAddModalOpen(false);
-    } else {
-      console.error("Failed to add Organization:", resultAction.payload);
+  const handleAddOrganization = async (newOrganization: TOrganization) => {
+    try {
+      setLoading(true);
+      const resultAction = await dispatch(createOrganization(newOrganization));
+      if (createOrganization.fulfilled.match(resultAction)) {
+        setIsAddModalOpen(false);
+        // Refresh organizations list after successful creation
+        await dispatch(fetchOrganizations());
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,7 +82,7 @@ function Organizations() {
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {!isFetching && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {organizationList.map((organization, index) => (
           <div key={index} className="self-start">
             <OrganizationCard
@@ -74,7 +91,7 @@ function Organizations() {
             />
           </div>
         ))}
-      </div>
+      </div>}
       {isAddModalOpen && (
         <AddOrganization
           closeAddOrganization={closeAddModal}
