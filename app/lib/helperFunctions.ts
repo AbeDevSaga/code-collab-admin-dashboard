@@ -1,3 +1,5 @@
+import { TransformedTeamMember, TRole, TTeamMember, TUser } from "../constants/type";
+
 // Helper function to get stat values
 export const getStatValue = (
   title: string,
@@ -19,3 +21,26 @@ export const getStatValue = (
       return "";
   }
 };
+
+
+export const transformTeamMembers = (
+  teamMembers: TTeamMember[] | undefined
+): TransformedTeamMember[] => {
+  if (!teamMembers) return [];
+
+  return teamMembers.map((member) => ({
+    username: member.user.username,
+    email: member.user.email,
+    phone: member.user.phone || "",
+    role: member.role,
+    _id: member.user._id || "",
+    teamMemberId: member._id || "",
+    created_at: member.user.created_at || "",
+    addedAt: new Date(member.addedAt).toLocaleDateString(),
+    addedBy:
+      typeof member.addedBy === "string"
+        ? member.addedBy
+        : member.addedBy.username,
+  }));
+};
+

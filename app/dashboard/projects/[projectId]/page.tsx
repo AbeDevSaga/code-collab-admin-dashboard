@@ -1,7 +1,13 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TProject, TUser, TTask, TFile } from "@/app/constants/type";
+import {
+  TProject,
+  TUser,
+  TTask,
+  TFile,
+  TransformedTeamMember,
+} from "@/app/constants/type";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/app/redux/store";
 import {
@@ -19,6 +25,14 @@ import CreateUser from "@/app/components/user_related/CreateUser";
 import { fetchUsersByOrganizationId } from "@/app/redux/slices/userSlice";
 import OrganizationUsers from "@/app/components/org_related/OrganizationUsers";
 import { useLoading } from "@/app/context/LoadingContext";
+import TaskTable from "@/app/components/task_related/TaskTable";
+import AddTask from "@/app/components/task_related/AddTask";
+import {
+  createTasks,
+  fetchTasksByProjectId,
+} from "@/app/redux/slices/taskSlice";
+import { transformTeamMembers } from "@/app/lib/helperFunctions";
+import UserTable from "@/app/components/user_related/UsersTable";
 
 const ProjectDetailPage = () => {
   const router = useRouter();
@@ -28,9 +42,10 @@ const ProjectDetailPage = () => {
   const [project, setProject] = useState<TProject | null>(null);
   const [usersList, setUserList] = useState<TUser[]>([]);
   const [projectUsers, setProjectUsers] = useState<TUser[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TransformedTeamMember[]>([]);
   const [tasksList, setTasksList] = useState<TTask[]>([]);
   const [filesList, setFilesList] = useState<TFile[]>([]);
-  const {setLoading} = useLoading();
+  const { setLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
 
   const [showActions, setShowActions] = useState(false);
@@ -60,19 +75,35 @@ const ProjectDetailPage = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleViewUser = (user: TUser) => {
-    router.push(`${projectId}/${user._id}`);
-  };
   // Handle modal actions
   const handleAddUser = (newUser: TUser) => {
     console.log("New Task Data:", newUser);
     // Add task logic here
     setAddUserModalOpen(false);
   };
-  const handleAddTask = (newTask: TTask) => {
-    console.log("New Task Data:", newTask);
-    // Add task logic here
-    setAddTaskModalOpen(false);
+  const handleAddTasks = async (newTasks: TTask[]) => {
+    console.log("New Task Data:", newTasks);
+    try {
+      // Dispatch the createTasks action
+      const resultAction = await dispatch(createTasks(newTasks));
+
+      if (createTasks.fulfilled.match(resultAction)) {
+        // Success case
+        const createdTasks = Array.isArray(resultAction.payload)
+          ? resultAction.payload
+          : [resultAction.payload];
+
+        console.log("Tasks created successfully:", createdTasks);
+      } else if (createTasks.rejected.match(resultAction)) {
+        // Error case
+        console.error("Failed to create tasks:", resultAction.error);
+      }
+    } catch (error) {
+      console.error("Unexpected error creating tasks:", error);
+      // toast.error('An unexpected error occurred');
+    } finally {
+      setAddTaskModalOpen(false);
+    }
   };
 
   const handleAddFile = (newFile: TFile) => {
@@ -98,7 +129,6 @@ const ProjectDetailPage = () => {
       }
     }
   };
-
 
   const handleDeleteProject = async () => {
     console.log("Deleting Project:", selectedProject);
@@ -131,6 +161,10 @@ const ProjectDetailPage = () => {
     } else {
       console.error("Failed to add User to Project:", resultAction.payload);
     }
+  };
+
+  const handleViewUser = (user: TUser) => {
+    router.push(`${projectId}/users/${user._id}`);
   };
 
   const handleViewTask = (task: TTask) => {
@@ -170,6 +204,11 @@ const ProjectDetailPage = () => {
           const projectResponse = await dispatch(fetchProjectById(projectId));
           if (fetchProjectById.fulfilled.match(projectResponse)) {
             setProject(projectResponse.payload);
+            const transformedMembers = transformTeamMembers(
+              projectResponse.payload.teamMembers
+            );
+            setTeamMembers(transformedMembers);
+            console.log("Transformed Team Members: ", transformedMembers);
             //setProjectUsers(projectResponse.payload.teamMembers);
           } else if (fetchProjectById.rejected.match(projectResponse)) {
             setError("Failed to fetch project data");
@@ -177,23 +216,34 @@ const ProjectDetailPage = () => {
 
           // Fetch users for the organization
           // Assuming the project object has an organization property
-          const organizationId = (projectResponse.payload as TProject).organization._id;
+          const organizationId = (projectResponse.payload as TProject)
+            .organization._id;
           if (organizationId) {
-            const usersResponse = await dispatch(fetchUsersByOrganizationId(organizationId));
+            const usersResponse = await dispatch(
+              fetchUsersByOrganizationId(organizationId)
+            );
             if (fetchUsersByOrganizationId.fulfilled.match(usersResponse)) {
-              setUserList(usersResponse.payload);
+              const teamMemberIds = new Set(
+                teamMembers.map((member) => member._id)
+              );
+              const notTeamMembers = usersResponse.payload.filter(
+                (user) => user._id && !teamMemberIds.has(user._id)
+              );
+              setUserList(notTeamMembers);
             } else {
               setError("Failed to fetch user list");
             }
           }
 
           // Fetch tasks for the project
-          //   const tasksResponse = await dispatch(fetchTasksByProjectId(projectId));
-          //   if (fetchTasksByProjectId.fulfilled.match(tasksResponse)) {
-          //     setTasksList(tasksResponse.payload);
-          //   } else {
-          //     setError("Failed to fetch tasks");
-          //   }
+          const tasksResponse = await dispatch(
+            fetchTasksByProjectId(projectId)
+          );
+          if (fetchTasksByProjectId.fulfilled.match(tasksResponse)) {
+            setTasksList(tasksResponse.payload);
+          } else {
+            setError("Failed to fetch tasks");
+          }
 
           // Fetch files for the project
           //   const filesResponse = await dispatch(fetchFilesByProjectId(projectId));
@@ -342,33 +392,19 @@ const ProjectDetailPage = () => {
       <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
         <div className="flex items-center pb-2">
           <SectionHeader sectionKey="users" />
-        </div>
-        {/* {tasksList && tasksList.length > 0 && (
-          <TaskTable
-            onViewTask={handleViewTask}
-            tasks={tasksList}
-            px="2"
-            py="2"
-          />
-        )} */}
-      </div>
-      <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
-        <div className="flex items-center pb-2">
-          <SectionHeader sectionKey="users" />
           <div className="w-auto">
             <ActionButton
-              label="Create User"
+              label="Add User"
               onClick={openAddUserModal}
               icon="task"
             />
           </div>
         </div>
-        {usersList && usersList.length > 0 && (
-          <OrganizationUsers
+        {teamMembers.length > 0 && (
+          <UserTable
             onViewUser={handleViewUser}
-            onAddUser={handleAddUserToProject}
-            section={"user_to_project"}
-            users={usersList}
+            users={teamMembers}
+            role="members"
             px="2"
             py="2"
           />
@@ -387,14 +423,14 @@ const ProjectDetailPage = () => {
             />
           </div>
         </div>
-        {/* {tasksList && tasksList.length > 0 && (
+        {tasksList && tasksList.length > 0 && (
           <TaskTable
             onViewTask={handleViewTask}
             tasks={tasksList}
             px="2"
             py="2"
           />
-        )} */}
+        )}
       </div>
 
       {/* Files Section */}
@@ -420,20 +456,23 @@ const ProjectDetailPage = () => {
       </div>
       {/* Modals */}
       {addUserModalOpen && (
-        <CreateUser
+        <AddUser
           closeAddUser={closeAddUserModal}
-          onAddUser={handleAddUser}
+          onAddUser={handleAddUserToProject}
+          users={usersList}
           projectId={projectId}
         />
       )}
-      {/*
       {addTaskModalOpen && (
         <AddTask
           closeAddTask={closeAddTaskModal}
-          onAddTask={handleAddTask}
+          onAddTasks={handleAddTasks}
           projectId={projectId}
+          projectUsers={projectUsers || []}
         />
       )}
+      {/*
+      
       {addFileModalOpen && (
         <AddFile
           closeAddFile={closeAddFileModal}

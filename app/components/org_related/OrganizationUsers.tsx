@@ -12,6 +12,7 @@ interface OrganizationUsersProps {
   onAddUser: (userData: TUser) => void; // Define the onAddUser prop
   users: TUser[]; // Define the users prop
   section?: string;
+  height?: string;
   px: string;
   py: string;
 }
@@ -21,6 +22,7 @@ const OrganizationUsers: React.FC<OrganizationUsersProps> = ({
   onAddUser, // Destructure the onAddUser prop
   users,
   section,
+  height,
   px,
   py,
 }) => {
@@ -76,7 +78,7 @@ const OrganizationUsers: React.FC<OrganizationUsersProps> = ({
   };
 
   return (
-    <div className="min-h-screen">
+    <div className={`${height ? height : 'min-h-screen'}`}>
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200">
           {/* Table Header */}
@@ -131,7 +133,6 @@ const OrganizationUsers: React.FC<OrganizationUsersProps> = ({
                   <UserActions
                     user={user}
                     onAdd={handleUpdate} // Pass the handleAdd function
-                    onView={handleView} // Pass the handleView function
                     onDelete={handleDelete} // Pass the handleDelete function
                   />
                 </td>

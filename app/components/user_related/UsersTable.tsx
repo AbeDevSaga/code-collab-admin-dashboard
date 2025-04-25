@@ -9,11 +9,18 @@ import StatusBadge from "./StatusBadge";
 interface UserTableProps {
   onViewUser: (userData: TUser) => void;
   users: TUser[]; // Define the users prop
-  px: string,
-  py: string,
+  role?: string; // Optional role prop
+  px: string;
+  py: string;
 }
 
-const UserTable : React.FC<UserTableProps> = ({ onViewUser, users, px, py }) => {
+const UserTable: React.FC<UserTableProps> = ({
+  onViewUser,
+  users,
+  role,
+  px,
+  py,
+}) => {
   const [deletedUser, setDeletedUser] = useState<TUser | null>(null); // State to track the deleted user
   const [currentPage, setCurrentPage] = useState(1); // State to track the current page
   const usersPerPage = 6; // Number of users to display per page
@@ -80,9 +87,15 @@ const UserTable : React.FC<UserTableProps> = ({ onViewUser, users, px, py }) => 
               <th className="hidden lg:table-cell px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                 Date
               </th>
-              <th className="hidden xl:table-cell px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
-                Status
-              </th>
+              {!role ? (
+                <th className="hidden xl:table-cell px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Status
+                </th>
+              ) : (
+                <th className="hidden xl:table-cell px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  Role
+                </th>
+              )}
               <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">
                 Quick Action
               </th>
@@ -95,18 +108,32 @@ const UserTable : React.FC<UserTableProps> = ({ onViewUser, users, px, py }) => 
                 <td className={`px-${px} py-${py} whitespace-nowrap text-sm`}>
                   {user.username}
                 </td>
-                <td className={`hidden sm:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}>
+                <td
+                  className={`hidden sm:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
+                >
                   {user.email}
                 </td>
-                <td className={`hidden md:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}>
+                <td
+                  className={`hidden md:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
+                >
                   {user.phone}
                 </td>
-                <td className={`hidden lg:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}>
-                  {user.created_at}
+                <td
+                  className={`hidden lg:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
+                >
+                  {user.created_at?.split("T")[0] || ""}
                 </td>
-                <td className="hidden xl:table-cell px-2 py-2 whitespace-nowrap">
-                  <StatusBadge status={user.status || "pending"}/>
-                </td>
+                {!role ? (
+                  <td className="hidden xl:table-cell px-2 py-2 whitespace-nowrap">
+                    <StatusBadge status={user.status || "pending"} />
+                  </td>
+                ) : (
+                  <td
+                    className={`hidden lg:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
+                  >
+                    {user.role}
+                  </td>
+                )}
                 <td className="px-6 py-4 flex items-center justify-center whitespace-nowrap text-sm">
                   <UserActions
                     user={user}

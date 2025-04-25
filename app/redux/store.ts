@@ -8,6 +8,7 @@ import projectReducer from "./slices/projectSlice";
 import userReducer from "./slices/userSlice";
 import chatGroupReducer from "./slices/chatGroupSlice";
 import themeReducer from './slices/themeSlice';
+import taskReducer from "./slices/taskSlice";
 
 // Persist configuration
 const persistConfig = {
@@ -24,6 +25,7 @@ const store = configureStore({
     service: serviceReducer,
     organization: organizationReducer,
     project:projectReducer,
+    task: taskReducer,
     user: userReducer,
     chatGroup: chatGroupReducer,
     theme: themeReducer,

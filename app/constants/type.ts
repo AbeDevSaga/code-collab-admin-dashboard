@@ -14,6 +14,27 @@ export type TProfile = {
   date: string;
 };
 
+export interface TTeamMember {
+  user: TUser;
+  role: TRole;
+  addedAt: Date;
+  addedBy: TUser | string; 
+  _id?: string;
+}
+
+export interface TransformedTeamMember {
+  username: string;
+  email: string;
+  phone: string;
+  role: TRole;
+  _id: string;
+  teamMemberId: string;
+  created_at?: string;
+  addedAt: string; 
+  addedBy: string; 
+}
+
+
 export type TUpdates = {
   user_to_project: TSection;
   user_from_project: TSection;
@@ -71,7 +92,7 @@ export type TUser = {
   _id?: string;
   username: string;
   email: string;
-  password: string;
+  password?: string;
   phone?: string;
   role?: string;
   organization?: string;
@@ -82,7 +103,7 @@ export type TUser = {
   file?: TFile[];
   projects?: TProject[];
   tasks?: TTask[];
-  created_at: string;
+  created_at?: string;
   status?: "active" | "inactive" | "banned" | "pending";
 };
 
@@ -135,12 +156,7 @@ export type TProject = {
   status?: "active" | "inactive" | "completed" | "archived";
   createdBy: TUser;
   organization: TOrganization;
-  teamMembers?: {
-    user: TUser;
-    role: TRole;
-    addedAt: Date;
-    addedBy: TUser;
-  }[];
+  teamMembers?: TTeamMember[];
   files?: TFile[];
   tasks?: TTask[];
   createdAt?: Date;
@@ -153,8 +169,29 @@ export type TProject = {
   allowExternalContributors?: boolean;
 };
 export type TTask = {
-  _id: string;
+  _id?: string;
   name: string;
+  description?: string;
+  status?: "pending" | "in-progress" | "completed" | "blocked";
+  priority?: "low" | "medium" | "high";
+
+  createdBy: TUser;
+  assignedTo: TUser[];
+  project: TProject;
+  organization: TOrganization;
+
+  tags?: string[];
+  estimatedTime?: number; // in hours (Estimated time to complete the task)
+  actualTime?: number; // in hours (Actual time spent on the task)
+
+  comments?: string[];
+  attachments?: string[];
+  history?: string[];
+
+  createdAt?: Date;
+  updatedAt?: Date;
+
+  percentage?: string;
 };
 
 export type TSections = {
