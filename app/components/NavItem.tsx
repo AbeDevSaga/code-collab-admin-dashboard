@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
     MdDashboard, MdPeople, MdOutlineWorkspacePremium, MdNotifications, MdMessage, MdPhoto, 
-    MdReport, MdSupervisorAccount 
+    MdReport, MdSupervisorAccount, MdDriveFolderUpload
   } from "react-icons/md"; 
   import { FaUserShield, FaProjectDiagram, FaCogs } from "react-icons/fa";
   import { FaBuildingColumns } from "react-icons/fa6";
@@ -25,6 +25,7 @@ const iconMapping: IconMapping = {
   oraganizations: FaBuildingColumns,
   projects: FaProjectDiagram,
   services: FaCogs,
+  files: MdDriveFolderUpload,
 };
 
 interface NavItemProps {

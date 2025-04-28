@@ -146,8 +146,37 @@ export type TOrganization = {
 };
 
 export type TFile = {
-  _id: string;
+  _id?: string;
   name: string;
+  type?: string; 
+  path: string; 
+  extension?: string;
+  size?: number; 
+
+  createdBy?: TUser;
+  project?: TProject;
+  organization?: TOrganization;
+
+  sharedWith?: TUser[];
+
+  isVerssionControlled?: boolean;
+  gitRepository?: string;
+  currentbranch?: string;
+  lastCommitHash?: string;
+  collaborators?: String[];
+
+  created_at?: Date;
+  updated_at?: Date;
+  isDeleted?: boolean;
+  deletedBy?: TUser;
+  deletedAt?: Date;
+
+  history?: string[]; 
+
+  tags?: string[];
+  labels?: string[];
+  
+  comments?: string[];
 };
 export type TProject = {
   _id?: string;

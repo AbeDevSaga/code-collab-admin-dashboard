@@ -26,7 +26,7 @@ function Dashboard() {
     if (users.length === 0) return [];
     const today = new Date().toISOString().split("T")[0];
     return users.filter(user => {
-      const userCreatedAt = new Date(user.created_at).toISOString().split("T")[0];
+      const userCreatedAt = user.created_at ? new Date(user.created_at).toISOString().split("T")[0] : null;
       return userCreatedAt === today;
     });
   }, [users]);
