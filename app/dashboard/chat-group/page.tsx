@@ -51,7 +51,7 @@ function ChatGroup() {
 
   // Handle card click to navigate to chat group details
   const handleCardClick = (chatGroup: TChatGroup) => {
-    router.push(`chat-groups/${chatGroup._id}`);
+    router.push(`chat-group/${chatGroup._id}`);
   };
 
   return (

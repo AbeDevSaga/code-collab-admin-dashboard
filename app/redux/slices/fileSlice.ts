@@ -26,6 +26,7 @@ export const fetchAllFiles = createAsyncThunk(
           Authorization: `Bearer ${getAuthToken()}`,
         },
       });
+      console.log("file reponse: ", response.data)
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 401) {

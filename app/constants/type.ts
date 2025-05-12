@@ -77,6 +77,7 @@ export type TChatGroup = {
   isGroupChat?: boolean;
   avatar?: string;
   organization?: string;
+  project?: string;
   participants?: TUser[];
   lastMessage?: string;
   invitationLink?: string;
@@ -86,6 +87,19 @@ export type TChatGroup = {
   updatedAt?: Date;
   isPublic?: boolean;
   createdBy?: TUser;
+}
+
+export type TMessage = {
+  _id?: string;
+  chat?: string;
+  sender: TUser;
+  content: string;
+  attachments?: string[];
+  readBy?: TUser[];
+  deletedBy?: TUser[];
+  deletedAt?: Date;
+  deleted?: boolean;
+  createdAt?: Date;
 }
 
 export type TUser = {
@@ -153,6 +167,8 @@ export type TFile = {
   extension?: string;
   size?: number; 
 
+  children?: TFile[];
+  
   createdBy?: TUser;
   project?: TProject;
   organization?: TOrganization;

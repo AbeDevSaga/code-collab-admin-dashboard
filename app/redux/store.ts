@@ -10,6 +10,7 @@ import chatGroupReducer from "./slices/chatGroupSlice";
 import themeReducer from './slices/themeSlice';
 import taskReducer from "./slices/taskSlice";
 import fileReducer from "./slices/fileSlice";
+import messageReducer from "./slices/messageSlice";
 
 // Persist configuration
 const persistConfig = {
@@ -30,6 +31,7 @@ const store = configureStore({
     file: fileReducer,
     task: taskReducer,
     chatGroup: chatGroupReducer,
+    messages: messageReducer,
     theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>

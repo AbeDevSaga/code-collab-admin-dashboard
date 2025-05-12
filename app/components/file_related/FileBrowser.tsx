@@ -12,6 +12,9 @@ interface FileItemProps {
   setCurrentPath: (path: string) => void;
   navigationHistory: string[];
   navigateTo: (path: string) => void;
+  historyIndex: number;
+  onBack: () => void;
+  onForward: () => void;
 }
 
 const FileBrowser: React.FC<FileItemProps> = ({
@@ -19,23 +22,10 @@ const FileBrowser: React.FC<FileItemProps> = ({
   setCurrentPath,
   navigationHistory,
   navigateTo,
+  historyIndex,
+  onBack,
+  onForward,
 }) => {
-  const [historyIndex, setHistoryIndex] = useState<number>(0);
-
-  const goBack = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setCurrentPath(navigationHistory[historyIndex - 1]);
-    }
-  };
-
-  const goForward = () => {
-    if (historyIndex < navigationHistory.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setCurrentPath(navigationHistory[historyIndex + 1]);
-    }
-  };
-
   const refresh = () => {
     // Implement your refresh logic here
     console.log("Refreshing...");
@@ -60,7 +50,7 @@ const FileBrowser: React.FC<FileItemProps> = ({
     <div className="flex items-center p-2 bg-sidebarcolor shadow-bottom-sm border-b border-gray-200">
       <div className="flex space-x-1 mr-4">
         <button
-          onClick={goBack}
+          onClick={onBack}
           disabled={historyIndex === 0}
           className={`p-1 rounded ${
             historyIndex === 0
@@ -71,7 +61,7 @@ const FileBrowser: React.FC<FileItemProps> = ({
           <FiChevronLeft size={20} />
         </button>
         <button
-          onClick={goForward}
+          onClick={onForward}
           disabled={historyIndex === navigationHistory.length - 1}
           className={`p-1 rounded ${
             historyIndex === navigationHistory.length - 1

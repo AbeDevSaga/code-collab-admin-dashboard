@@ -3,19 +3,43 @@ import FileBrowser from "@/app/components/file_related/FileBrowser";
 import FileCard from "@/app/components/file_related/FileCard";
 import FolderCard from "@/app/components/file_related/FolderCard";
 import NewFile from "@/app/components/file_related/NewFile";
-import React, { useState } from "react";
+import { TFile } from "@/app/constants/type";
+import { fetchAllFiles } from "@/app/redux/slices/fileSlice";
+import { AppDispatch, RootState } from "@/app/redux/store";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 const FolderBrowser: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { files, loading, error } = useSelector((state: RootState) => state.file);
   const [currentPath, setCurrentPath] = useState<string>("/");
   const [navigationHistory, setNavigationHistory] = useState<string[]>(["/"]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
 
-  const [folders, setFolders] = useState([
-    { id: "1", name: "Documents", type: "folder", path: "/Documents" },
-    { id: "2", name: "Images", type: "folder", path: "/Images" },
-    { id: "3", name: "report.pdf", type: "file", path: "/report.pdf" },
-    { id: "4", name: "notes.txt", type: "file", path: "/notes.txt" },
-  ]);
+
+  useEffect(() => {
+    dispatch(fetchAllFiles());
+  }, [dispatch]);
+
+  // Get current directory contents
+  const getCurrentContents = (): TFile[] => {
+    if (!files || files.length === 0) return [];
+    
+    const findFolder = (items: TFile[], targetPath: string): TFile | null => {
+      for (const item of items) {
+        if (item.path === targetPath) return item;
+        if (item.children) {
+          const found = findFolder(item.children, targetPath);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const currentFolder = findFolder(files, currentPath);
+    return currentFolder?.children || files;
+  };
 
   const navigateTo = (path: string) => {
     const newHistory = navigationHistory.slice(0, historyIndex + 1);
@@ -26,15 +50,25 @@ const FolderBrowser: React.FC = () => {
   };
 
   const handleRename = (id: string, newName: string) => {
-    setFolders(
-      folders.map((folder) =>
-        folder.id === id ? { ...folder, name: newName } : folder
-      )
-    );
+    
   };
 
   const handleDelete = (id: string) => {
-    setFolders(folders.filter((folder) => folder.id !== id));
+
+  };
+
+  const goBack = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      setCurrentPath(navigationHistory[historyIndex - 1]);
+    }
+  };
+
+  const goForward = () => {
+    if (historyIndex < navigationHistory.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      setCurrentPath(navigationHistory[historyIndex + 1]);
+    }
   };
 
   return (
@@ -44,28 +78,31 @@ const FolderBrowser: React.FC = () => {
         setCurrentPath={setCurrentPath}
         navigationHistory={navigationHistory}
         navigateTo={navigateTo}
+        historyIndex={historyIndex}
+        onBack={goBack}
+        onForward={goForward}
       />
       <div className="p-2 flex flex-wrap">
-        {folders.map((folder) =>
-          folder.type === "folder" ? (
+        {getCurrentContents().map((file) =>
+          file.type === "folder" ? (
             <FolderCard
-              key={folder.id}
-              file={folder}
-              onRename={(newName) => handleRename(folder.id, newName)}
-              onDelete={() => handleDelete(folder.id)}
+              key={file._id}
+              file={file}
+              onRename={(newName) => handleRename(file._id||"", newName)}
+              onDelete={() => handleDelete(file._id||"")}
               onNavigation={navigateTo}
             />
           ) : (
             <FileCard
-              key={folder.id}
-              file={folder}
-              onRename={(newName) => handleRename(folder.id, newName)}
-              onDelete={() => handleDelete(folder.id)}
+              key={file._id}
+              file={file}
+              onRename={(newName) => handleRename(file._id||"", newName)}
+              onDelete={() => handleDelete(file._id||"")}
               onNavigation={navigateTo}
             />
           )
         )}
-        <NewFile/>
+        <NewFile currentPath={currentPath}/>
       </div>
     </div>
   );

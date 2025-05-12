@@ -1,7 +1,15 @@
+import { createNewFile } from "@/app/redux/slices/fileSlice";
+import { AppDispatch } from "@/app/redux/store";
 import React, { useRef, useState } from "react";
 import { FiFolder, FiFile, FiPlusCircle, FiX, FiCheck } from "react-icons/fi";
+import { useDispatch } from "react-redux";
 
-const NewFile: React.FC = () => {
+interface newFileProp {
+  currentPath: string
+}
+
+const NewFile: React.FC<newFileProp> = ({currentPath}) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [showMenu, setShowMenu] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -29,11 +37,26 @@ const NewFile: React.FC = () => {
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
       console.log(`Creating ${currentType}: ${inputValue}`);
-      // Here you would typically call an API or update state
+      try {
+        const fileData = {
+          name: inputValue,
+          type: currentType,
+          path: currentPath, // Or construct path as needed
+          content: currentType === "file" ? "" : undefined,
+          // Add other required fields as needed
+        };
+
+        await dispatch(createNewFile(fileData)).unwrap();
+
+        setInputValue("");
+        setShowInput(false);
+      } catch (error) {
+        console.error("Failed to create file:", error);
+      }
     }
     setInputValue("");
     setShowInput(false);
@@ -60,18 +83,28 @@ const NewFile: React.FC = () => {
                   currentType === "folder" ? "Folder" : "File"
                 } name`}
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setShowInput(false);
+                    setInputValue("");
+                  }
+                }}
               />
               <div className="flex space-x-2">
                 <button
                   type="submit"
                   className="p-1 text-green-500 hover:bg-green-50 rounded"
                   title="Create"
+                  disabled={!inputValue.trim()}
                 >
                   <FiCheck size={18} />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowInput(false)}
+                  onClick={() => {
+                    setShowInput(false);
+                    setInputValue("");
+                  }}
                   className="p-1 text-red-500 hover:bg-red-50 rounded"
                   title="Cancel"
                 >
