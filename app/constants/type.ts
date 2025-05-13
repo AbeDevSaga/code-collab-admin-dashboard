@@ -89,6 +89,11 @@ export type TChatGroup = {
   createdBy?: TUser;
 }
 
+export type TToast = 
+  | "success"
+  | "error"
+  | "warning"
+  | "info";
 export type TMessage = {
   _id?: string;
   chat?: string;

@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TUser, TService, TChatGroups, TFile, TProject, TTask } from "@/app/constants/type";
+import { TUser, TService, TChatGroup, TFile, TProject, TTask } from "@/app/constants/type";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/app/redux/store";
 import {
@@ -14,13 +14,14 @@ import ActionButton from "@/app/components/ActionButton";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import DeleteUser from "@/app/components/user_related/DeleteUser";
 import UserTable from "@/app/components/user_related/UsersTable";
+import { formatDate } from "@/app/utils/dateUtils";
 
 const UserDetailsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { userId } = useParams() as { userId: string };
   const [user, setUser] = useState<TUser | null>(null);
   const [services, setServices] = useState<TService[]>([]);
-  const [chatGroups, setChatGroups] = useState<TChatGroups[]>([]);
+  const [chatGroups, setChatGroups] = useState<TChatGroup[]>([]);
   const [files, setFiles] = useState<TFile[]>([]);
   const [projects, setProjects] = useState<TProject[]>([]);
   const [tasks, setTasks] = useState<TTask[]>([]);
@@ -201,7 +202,7 @@ const UserDetailsPage = () => {
           <div className="bg-gray-50 p-4 rounded-lg">
             <h2 className="text-sm font-semibold text-gray-500">Created At</h2>
             <p className="text-gray-800">
-              {new Date(user.created_at).toLocaleDateString()}
+              {user.created_at && formatDate(user.created_at)}
             </p>
           </div>
         </div>

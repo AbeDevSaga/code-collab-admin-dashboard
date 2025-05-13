@@ -103,3 +103,19 @@ body {
   padding: 20px;
   overflow-y: auto;
 }
+
+
+@keyframes toast-popup {
+  0% {
+    transform: translate(-50%, 20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-toast-popup {
+  animation: toast-popup 0.3s ease-out forwards;
+}

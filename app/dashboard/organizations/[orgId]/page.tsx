@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TOrganization, TProject, TUser } from "@/app/constants/type";
+import { TOrganization, TProject, TRole, TUser } from "@/app/constants/type";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/app/redux/store";
 import {
@@ -14,7 +14,7 @@ import ActionButton from "@/app/components/ActionButton";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import UpdateOrganization from "@/app/components/org_related/UpdateOrganization";
 import DeleteOrganization from "@/app/components/org_related/DeleteOrganization";
-import { fetchUsersByOrganizationId } from "@/app/redux/slices/userSlice";
+import { createUser, fetchUsersByOrganizationId } from "@/app/redux/slices/userSlice";
 import UserTable from "@/app/components/user_related/UsersTable";
 import AddUser from "@/app/components/user_related/AddUser";
 import { useRouter } from "next/navigation";
@@ -31,18 +31,15 @@ const OrganizationDetailsPage = () => {
   const [projectList, setProjectList] = useState<TProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState("");
 
   const [showActions, setShowActions] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
-  const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] =
     useState<TOrganization | null>(null);
   // Open the modals
-  const openAddAdminModal = () => {
-    setAddAdminModalOpen(true);
-  };
   const openAddUserModal = () => {
     setAddUserModalOpen(true);
   };
@@ -56,17 +53,20 @@ const OrganizationDetailsPage = () => {
   };
 
   // Handle modal actions
-  const handleAddAdmin = (newUser: TUser) => {
+  const handleOpenAddAdmin = ()=> {
+    setUserRole("Super Admin");
+    setAddUserModalOpen(true);
+  }
+  const handleAddUser = async (newUser: TUser) => {
     console.log("New User Data:", newUser);
     // Add admin logic here
-    // const resultAction = await dispatch(createUser(newUser));
-    // if (createUser.fulfilled.match(resultAction)) {
-    //   console.log("User added successfully:", resultAction.payload);
-    //   setIsAddUserOpen(false); // Close the modal after saving
-    // } else {
-    //   console.error("Failed to add user:", resultAction.payload);
-    // }
-    setAddAdminModalOpen(false);
+    const resultAction = await dispatch(createUser(newUser));
+    if (createUser.fulfilled.match(resultAction)) {
+      console.log("User added successfully:", resultAction.payload);
+      setAddUserModalOpen(false); // Close the modal after saving
+    } else {
+      console.error("Failed to add user:", resultAction.payload);
+    }
   };
 
   const handleUpdateOrganization = async (updatedService: TOrganization) => {
@@ -108,9 +108,6 @@ const OrganizationDetailsPage = () => {
   };
 
   // Close the modals
-  const closeAddAdminModal = () => {
-    setAddAdminModalOpen(false);
-  };
   const closeAddUserModal = () => {
     setAddUserModalOpen(false);
   };
@@ -128,7 +125,6 @@ const OrganizationDetailsPage = () => {
         try {
           setLoading(true);
           setError(null);
-
           const orgResponse = await dispatch(fetchOrganizationById(orgId));
           if (fetchOrganizationById.fulfilled.match(orgResponse)) {
             setOrganization(orgResponse.payload);
@@ -308,7 +304,7 @@ const OrganizationDetailsPage = () => {
 
               {/* Add Super Admin Button */}
               <button
-                onClick={() => openAddAdminModal()}
+                onClick={handleOpenAddAdmin}
                 className="text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-2"
               >
                 <span>Add Super Admin</span>
@@ -383,13 +379,12 @@ const OrganizationDetailsPage = () => {
           />
         )}
       </div>
-
-      {addAdminModalOpen && (
+      {addUserModalOpen && (
         <CreateUser
-          closeAddUser={closeAddAdminModal}
-          onAddUser={handleAddAdmin}
+          closeAddUser={closeAddUserModal}
+          onAddUser={handleAddUser}
           orgId={orgId}
-          role="Super Admin"
+          role={userRole}
         />
       )}
       {isUpdateModalOpen && selectedOrganization && (

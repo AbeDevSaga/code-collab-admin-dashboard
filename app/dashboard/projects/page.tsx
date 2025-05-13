@@ -34,13 +34,13 @@ function Projects() {
   // Handle modal actions
   const handleAddProject = async (newProject: TProject) => {
     console.log("Adding new Project...", newProject);
-    const resultAction = await dispatch(createProject(newProject));
-    if (createProject.fulfilled.match(resultAction)) {
-      console.log("Project added successfully:", resultAction.payload);
-      setIsAddModalOpen(false);
-    } else {
-      console.error("Failed to add Project:", resultAction.payload);
-    }
+    // const resultAction = await dispatch(createProject(newProject));
+    // if (createProject.fulfilled.match(resultAction)) {
+    //   console.log("Project added successfully:", resultAction.payload);
+    //   setIsAddModalOpen(false);
+    // } else {
+    //   console.error("Failed to add Project:", resultAction.payload);
+    // }
   };
 
   // Close the modals
