@@ -4,6 +4,7 @@ import ChatTab from "@/app/components/chat_related/ChatTab";
 import ChatWindow from "@/app/components/chat_related/ChatWindow";
 import MessageBox from "@/app/components/chat_related/MessageBox";
 import { TMessage, TUser } from "@/app/constants/type";
+import { fetchChatById } from "@/app/redux/slices/chatGroupSlice";
 import {
   fetchMessages,
   markMessageAsRead,
@@ -19,12 +20,27 @@ const ChatGroup: React.FC = () => {
   const { messages, loading, error } = useSelector(
     (state: RootState) => state.messages
   );
+  const { currentChat } = useSelector((state: RootState) => state.chatGroup);
 
   const { groupId } = useParams() as { groupId: string };
   const [showSidebar, setShowSidebar] = useState(false);
   const [members, setMembers] = useState<TUser[]>([]);
   const user = useSelector((state: RootState) => state.auth.user);
   const chatId = groupId? groupId : "defaultChatId";
+
+  useEffect(() => {
+    if (currentChat?.participants) {
+      const formattedMembers = currentChat.participants.map(participant => ({
+        _id: participant.user._id,
+        username: participant.user.username,
+        email: participant.user.email,
+        role: participant.role, // Using the role from participant section
+        profileImage: participant.user.profileImage,
+        status: participant.status
+      }));
+      setMembers(formattedMembers);
+    }
+  }, [currentChat]);
 
   const handleSendMessage = (message: TMessage) => {
     // console.log("sending message: ", message)
@@ -35,8 +51,16 @@ const ChatGroup: React.FC = () => {
     dispatch(markMessageAsRead(messageId));
   };
 
-  // Fetch projects on component mount
+  // Fetch Chat Group and Message on component mount
   useEffect(() => {
+    dispatch(fetchChatById(chatId))
+    .unwrap()
+      .then((data) => {
+        console.log("Chats Group successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch Chat Groups:", error);
+      });
     dispatch(fetchMessages({chatId}))
       .unwrap()
       .then((data) => {
@@ -46,33 +70,6 @@ const ChatGroup: React.FC = () => {
         console.error("Failed to fetch messeges:", error);
       });
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (projects && projects.length > 0) {
-  //     const allStudents = projects
-  //       .flatMap((project) => project.students || [])
-  //       .filter(
-  //         (student, index, self) =>
-  //           student?._id &&
-  //           index === self.findIndex((s) => s?._id === student._id) &&
-  //           student._id !== user?._id
-  //       ) as TUser[];
-  //     const advisors = projects
-  //       .flatMap((project) => project.advisor || [])
-  //       .filter(
-  //         (advisor, index, self) =>
-  //           advisor?._id &&
-  //           index === self.findIndex((s) => s?._id === advisor._id) &&
-  //           advisor._id !== user?._id
-  //       ) as TUser[];
-  //     const members = [...allStudents, ...advisors].filter(
-  //       (member, index, self) =>
-  //         index === self.findIndex((m) => m._id === member._id)
-  //     );
-
-  //     setMembers(members);
-  //   }
-  // }, [projects]);
 
   const toggleSidebar = () => setShowSidebar((prev) => !prev);
 
