@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TTask, TUser } from "../../constants/type";
+import { TTask, TUser, TTaskStatus } from "../../constants/type";
 
 interface AddTaskProps {
   closeAddTask: () => void;
@@ -16,14 +16,14 @@ const AddTask: React.FC<AddTaskProps> = ({
 }) => {
   const [tasks, setTasks] = useState<TTask[]>([
     {
-      _id: "", 
-      projectId,
-      taskName: "",
-      discription: "",
+      _id: "",
+      project: projectId,
+      name: "",
+      description: "",
       assignedTo: [],
-      status: "not-started",
+      status: "pending",
       startDate: new Date(),
-      endDate: new Date(),
+      dueDate: new Date(),
       percentage: "0",
     },
   ]);
@@ -32,20 +32,26 @@ const AddTask: React.FC<AddTaskProps> = ({
 
   const handleTaskChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
       updatedTasks[index] = {
         ...updatedTasks[index],
-        [name]: name === "status" ? value as TTask["status"] : value,
+        [name]: name === "status" ? (value as TTask["status"]) : value,
       };
       return updatedTasks;
     });
   };
 
-  const handleDateChange = (index: number, field: "startDate" | "endDate", value: string) => {
+  const handleDateChange = (
+    index: number,
+    field: "startDate" | "dueDate",
+    value: string
+  ) => {
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
       updatedTasks[index] = {
@@ -56,28 +62,34 @@ const AddTask: React.FC<AddTaskProps> = ({
     });
   };
 
-  const handleUserSelection = (taskIndex: number, userId: string | undefined, isChecked: boolean) => {
+  const handleUserSelection = (
+    taskIndex: number,
+    userId: string | undefined,
+    isChecked: boolean
+  ) => {
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
       const currentAssigned = [...updatedTasks[taskIndex].assignedTo];
-      
+
       if (isChecked) {
-        const userToAdd = projectUsers.find(user => user._id === userId);
+        const userToAdd = projectUsers.find((user) => user._id === userId);
         if (userToAdd) {
           currentAssigned.push(userToAdd);
         }
       } else {
-        const userIndex = currentAssigned.findIndex(user => user._id === userId);
+        const userIndex = currentAssigned.findIndex(
+          (user) => user._id === userId
+        );
         if (userIndex > -1) {
           currentAssigned.splice(userIndex, 1);
         }
       }
-      
+
       updatedTasks[taskIndex] = {
         ...updatedTasks[taskIndex],
         assignedTo: currentAssigned,
       };
-      
+
       return updatedTasks;
     });
   };
@@ -87,13 +99,13 @@ const AddTask: React.FC<AddTaskProps> = ({
       ...prevTasks,
       {
         _id: "",
-        projectId,
-        taskName: "",
-        discription: "",
+        project: projectId,
+        name: "",
+        description: "",
         assignedTo: [],
-        status: "not-started",
+        status: "pending",
         startDate: new Date(),
-        endDate: new Date(),
+        dueDate: new Date(),
         percentage: "0",
       },
     ]);
@@ -122,17 +134,19 @@ const AddTask: React.FC<AddTaskProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate all tasks have required fields
     const isValid = tasks.every(
-      (task) => task.taskName.trim() && task.assignedTo.length > 0
+      (task) => task.name.trim() && task.assignedTo.length > 0
     );
-    
+
     if (!isValid) {
-      alert("Please fill all required fields for each task (Task Name and at least one assigned user)");
+      alert(
+        "Please fill all required fields for each task (Task Name and at least one assigned user)"
+      );
       return;
     }
-    
+
     console.log("Tasks to be added:", tasks);
     onAddTasks(tasks);
   };
@@ -140,8 +154,10 @@ const AddTask: React.FC<AddTaskProps> = ({
   return (
     <div className="px-2 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4">Add New Tasks for Project</h2>
-        
+        <h2 className="text-xl font-semibold mb-4">
+          Add New Tasks for Project
+        </h2>
+
         <div className="mb-4 flex items-center">
           <input
             type="checkbox"
@@ -150,12 +166,17 @@ const AddTask: React.FC<AddTaskProps> = ({
             onChange={(e) => setEqualPercentage(e.target.checked)}
             className="mr-2"
           />
-          <label htmlFor="equalPercentage">Distribute percentage equally among tasks</label>
+          <label htmlFor="equalPercentage">
+            Distribute percentage equally among tasks
+          </label>
         </div>
 
         <form onSubmit={handleSubmit}>
           {tasks.map((task, index) => (
-            <div key={index} className="mb-6 p-4 border border-gray-200 rounded-lg">
+            <div
+              key={index}
+              className="mb-6 p-4 border border-gray-200 rounded-lg"
+            >
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium">Task #{index + 1}</h3>
                 {tasks.length > 1 && (
@@ -177,8 +198,8 @@ const AddTask: React.FC<AddTaskProps> = ({
                     </label>
                     <input
                       type="text"
-                      name="taskName"
-                      value={task.taskName}
+                      name="name"
+                      value={task.name}
                       onChange={(e) => handleTaskChange(index, e)}
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                       required
@@ -190,8 +211,8 @@ const AddTask: React.FC<AddTaskProps> = ({
                       Description
                     </label>
                     <textarea
-                      name="discription"
-                      value={task.discription}
+                      name="description"
+                      value={task.description}
                       onChange={(e) => handleTaskChange(index, e)}
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                     />
@@ -207,9 +228,10 @@ const AddTask: React.FC<AddTaskProps> = ({
                       onChange={(e) => handleTaskChange(index, e)}
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                     >
-                      <option value="not-started">Not Started</option>
+                      <option value="pending">Pending</option>
                       <option value="in-progress">In Progress</option>
                       <option value="completed">Completed</option>
+                      <option value="blocked">Blocked</option>
                     </select>
                   </div>
                 </div>
@@ -221,8 +243,10 @@ const AddTask: React.FC<AddTaskProps> = ({
                     </label>
                     <input
                       type="date"
-                      value={task.startDate.toISOString().split('T')[0]}
-                      onChange={(e) => handleDateChange(index, "startDate", e.target.value)}
+                      value={task.startDate?.toISOString().split("T")[0]}
+                      onChange={(e) =>
+                        handleDateChange(index, "startDate", e.target.value)
+                      }
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -233,8 +257,10 @@ const AddTask: React.FC<AddTaskProps> = ({
                     </label>
                     <input
                       type="date"
-                      value={task.endDate.toISOString().split('T')[0]}
-                      onChange={(e) => handleDateChange(index, "endDate", e.target.value)}
+                      value={task.dueDate?.toISOString().split("T")[0]}
+                      onChange={(e) =>
+                        handleDateChange(index, "dueDate", e.target.value)
+                      }
                       className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                     />
                   </div>
@@ -264,20 +290,33 @@ const AddTask: React.FC<AddTaskProps> = ({
                     </label>
                     <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
                       {projectUsers.length === 0 ? (
-                        <p className="text-sm text-gray-500">No users available for this project</p>
+                        <p className="text-sm text-gray-500">
+                          No users available for this project
+                        </p>
                       ) : (
                         projectUsers.map((user) => (
-                          <div key={user._id} className="flex items-center mb-2">
+                          <div
+                            key={user._id}
+                            className="flex items-center mb-2"
+                          >
                             <input
                               type="checkbox"
                               id={`user-${index}-${user._id}`}
-                              checked={task.assignedTo.some(assignedUser => assignedUser._id === user._id)}
+                              checked={task.assignedTo.some(
+                                (assignedUser) => assignedUser._id === user._id
+                              )}
                               onChange={(e) =>
-                                handleUserSelection(index, user._id, e.target.checked)
+                                handleUserSelection(
+                                  index,
+                                  user._id,
+                                  e.target.checked
+                                )
                               }
                               className="mr-2"
                             />
-                            <label htmlFor={`user-${index}-${user._id || 'unknown'}`}>
+                            <label
+                              htmlFor={`user-${index}-${user._id || "unknown"}`}
+                            >
                               {user.username}
                             </label>
                           </div>
@@ -310,7 +349,9 @@ const AddTask: React.FC<AddTaskProps> = ({
               <button
                 type="submit"
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600"
-                disabled={tasks.some(t => !t.taskName.trim() || t.assignedTo.length === 0)}
+                disabled={tasks.some(
+                  (t) => !t.name.trim() || t.assignedTo.length === 0
+                )}
               >
                 Add Tasks
               </button>

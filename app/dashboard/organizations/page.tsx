@@ -23,22 +23,30 @@ function Organizations() {
   const { setLoading } = useLoading();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const user = useSelector((state: RootState) => state.auth.user);
 
+  useEffect(() => {
+    if (user && user.role !== "Admin" && user.organization) {
+      router.push(`organizations/${user.organization}`);
+    }
+  });
 
   // Fetch services on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setIsFetching(true);
-        await dispatch(fetchOrganizations());
-      } finally {
-        setLoading(false);
-        setIsFetching(false);
-      }
-    };
-    fetchData();
-  }, [dispatch, setLoading]);
+    if (user?.role === "Admin") {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          setIsFetching(true);
+          await dispatch(fetchOrganizations());
+        } finally {
+          setLoading(false);
+          setIsFetching(false);
+        }
+      };
+      fetchData();
+    }
+  }, [dispatch, setLoading, user]);
 
   // Open the modals
   const openAddModal = () => {
@@ -82,16 +90,18 @@ function Organizations() {
           />
         </div>
       </div>
-      {!isFetching && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {organizationList.map((organization, index) => (
-          <div key={index} className="self-start">
-            <OrganizationCard
-              organization={organization}
-              onCardClick={() => handleCardClick(organization)}
-            />
-          </div>
-        ))}
-      </div>}
+      {!isFetching && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {organizationList.map((organization, index) => (
+            <div key={index} className="self-start">
+              <OrganizationCard
+                organization={organization}
+                onCardClick={() => handleCardClick(organization)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
       {isAddModalOpen && (
         <AddOrganization
           closeAddOrganization={closeAddModal}

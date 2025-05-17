@@ -98,13 +98,4 @@ export const statsData = [
     iconBg: "bg-newUserBg",
     iconFg: "text-newUserFg",
   },
-  {
-    title: "Notifications",
-    icon: "notifications",
-    value: "0",
-    decision: "increment",
-    percentage: "+12.80%",
-    iconBg: "bg-newUserBg",
-    iconFg: "text-newUserFg",
-  },
 ];

@@ -28,19 +28,22 @@ export const transformTeamMembers = (
 ): TransformedTeamMember[] => {
   if (!teamMembers) return [];
 
-  return teamMembers.map((member) => ({
-    username: member.user.username,
-    email: member.user.email,
-    phone: member.user.phone || "",
-    role: member.role,
-    _id: member.user._id || "",
-    teamMemberId: member._id || "",
-    created_at: member.user.created_at || "",
-    addedAt: new Date(member.addedAt).toLocaleDateString(),
-    addedBy:
-      typeof member.addedBy === "string"
-        ? member.addedBy
-        : member.addedBy.username,
-  }));
+  return teamMembers.map((member) => {
+    // Safe access to nested properties
+    const user = member?.user || {};
+    const addedBy = member?.addedBy || {};
+    
+    return {
+      username: user?.username || 'Unknown',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      role: member?.role || '',
+      _id: user?._id || '',
+      teamMemberId: member?._id || '',
+      created_at: user?.created_at || '',
+      addedAt: member?.addedAt ? new Date(member.addedAt).toLocaleDateString() : '',
+      addedBy: typeof addedBy === 'string' ? addedBy : addedBy?.username || ''
+    };
+  });
 };
 

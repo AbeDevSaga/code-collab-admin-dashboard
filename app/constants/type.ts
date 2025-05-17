@@ -18,7 +18,7 @@ export interface TTeamMember {
   user: TUser;
   role: TRole;
   addedAt: Date;
-  addedBy: TUser | string; 
+  addedBy?: TUser | string; 
   _id?: string;
 }
 
@@ -88,7 +88,11 @@ export type TChatGroup = {
   isPublic?: boolean;
   createdBy?: TUser;
 }
-
+export type TTaskStatus = 
+  | "pending"
+  | "in-progress"
+  | "completed"
+  | "blocked";
 export type TToast = 
   | "success"
   | "error"
@@ -171,6 +175,7 @@ export type TFile = {
   path: string; 
   extension?: string;
   size?: number; 
+  content?: string;
 
   children?: TFile[];
   
@@ -222,13 +227,17 @@ export type TTask = {
   _id?: string;
   name: string;
   description?: string;
-  status?: "pending" | "in-progress" | "completed" | "blocked";
+  status?: TTaskStatus;
   priority?: "low" | "medium" | "high";
 
   createdBy: TUser;
   assignedTo: TUser[];
   project: TProject;
-  organization: TOrganization;
+  organization?: TOrganization;
+
+  startDate?: Date;
+  dueDate?: Date;
+  completedAt?: Date;
 
   tags?: string[];
   estimatedTime?: number; // in hours (Estimated time to complete the task)

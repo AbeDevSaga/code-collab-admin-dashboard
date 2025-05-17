@@ -7,10 +7,12 @@ import {
   TTask,
   TFile,
   TransformedTeamMember,
+  TTeamMember,
 } from "@/app/constants/type";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/app/redux/store";
 import {
+  addMultipleUsersToProject,
   addUserToProject,
   deleteProject,
   fetchProjectById,
@@ -93,6 +95,9 @@ const ProjectDetailPage = () => {
           ? resultAction.payload
           : [resultAction.payload];
 
+        // Add the new tasks to the existing tasks list
+        setTasksList((prevTasks) => [...prevTasks, ...createdTasks]);
+
         console.log("Tasks created successfully:", createdTasks);
       } else if (createTasks.rejected.match(resultAction)) {
         // Error case
@@ -145,21 +150,49 @@ const ProjectDetailPage = () => {
   };
 
   // Handle add user to project
-  const handleAddUserToProject = async (newUser: TUser, role?: string) => {
+  const handleAddUserToProject = async (newUser: TUser[], role?: string) => {
     console.log("New User to add to Project:", newUser);
-    const resultAction = await dispatch(
-      addUserToProject({
-        projectId: projectId,
-        userId: newUser._id || "",
-        role: role || "Developer",
-        addedBy: user?._id || "",
-      })
-    );
-    if (addUserToProject.fulfilled.match(resultAction)) {
-      console.log("User added to Project successfully:", resultAction.payload);
-      setAddUserModalOpen(false);
-    } else {
-      console.error("Failed to add User to Project:", resultAction.payload);
+    // const resultAction = await dispatch(
+    //   addUserToProject({
+    //     projectId: projectId,
+    //     userId: newUser._id || "",
+    //     role: role || "Developer",
+    //     addedBy: user?._id || "",
+    //   })
+    // );
+    // if (addUserToProject.fulfilled.match(resultAction)) {
+    //   console.log("User added to Project successfully:", resultAction.payload);
+    //   setAddUserModalOpen(false);
+    // } else {
+    //   console.error("Failed to add User to Project:", resultAction.payload);
+    // }
+  };
+  const handleAddMultipleUsers = async (selectedUsers: TTeamMember[]) => {
+    try {
+      console.log("selectedUsers: ", selectedUsers);
+      const resultAction = await dispatch(
+        addMultipleUsersToProject({
+          projectId,
+          users: selectedUsers
+            .filter((member) => member.user._id)
+            .map((member) => ({
+              userId: member.user._id as string,
+              role: member.role,
+            })),
+          addedBy: user?._id || "",
+        })
+      );
+
+      if (addMultipleUsersToProject.fulfilled.match(resultAction)) {
+        // Success case
+        console.log("Users added successfully:", resultAction.payload);
+        await dispatch(fetchProjectById(projectId));
+      } else if (addMultipleUsersToProject.rejected.match(resultAction)) {
+        // Error case
+        console.error("Failed to add users:", resultAction.error);
+      }
+    } catch (error) {
+      console.error("Unexpected error adding users:", error);
     }
   };
 
@@ -200,60 +233,62 @@ const ProjectDetailPage = () => {
           setLoading(true);
           setError(null);
 
-          // Fetch project details
+          // Fetch project details first
           const projectResponse = await dispatch(fetchProjectById(projectId));
+
           if (fetchProjectById.fulfilled.match(projectResponse)) {
-            setProject(projectResponse.payload);
+            const projectData = projectResponse.payload as TProject;
+            setProject(projectData);
+
+            // Transform team members immediately
             const transformedMembers = transformTeamMembers(
-              projectResponse.payload.teamMembers
+              projectData.teamMembers
             );
             setTeamMembers(transformedMembers);
             console.log("Transformed Team Members: ", transformedMembers);
-            //setProjectUsers(projectResponse.payload.teamMembers);
+
+            // Now fetch organization users using the transformed members we just created
+            const organizationId = projectData.organization._id;
+            if (organizationId) {
+              const usersResponse = await dispatch(
+                fetchUsersByOrganizationId(organizationId)
+              );
+
+              if (fetchUsersByOrganizationId.fulfilled.match(usersResponse)) {
+                // Use the transformedMembers we already have, not the state
+                const teamMemberIds = new Set(
+                  transformedMembers.map((member) => member._id)
+                );
+
+                console.log("team members ids: ", teamMemberIds);
+                const notTeamMembers = usersResponse.payload.filter(
+                  (user) => user._id && !teamMemberIds.has(user._id)
+                );
+
+                console.log("not team members: ", notTeamMembers);
+                setUserList(notTeamMembers);
+              } else {
+                setError("Failed to fetch user list");
+              }
+            }
+
+            // Fetch tasks for the project
+            const tasksResponse = await dispatch(
+              fetchTasksByProjectId(projectId)
+            );
+            if (fetchTasksByProjectId.fulfilled.match(tasksResponse)) {
+              console.log("tasksResponse.payload: ", tasksResponse.payload);
+              setTasksList(tasksResponse.payload);
+            } else {
+              setError("Failed to fetch tasks");
+            }
           } else if (fetchProjectById.rejected.match(projectResponse)) {
             setError("Failed to fetch project data");
+            console.error("Rejection error:", projectResponse.error);
           }
-
-          // Fetch users for the organization
-          // Assuming the project object has an organization property
-          const organizationId = (projectResponse.payload as TProject)
-            .organization._id;
-          if (organizationId) {
-            const usersResponse = await dispatch(
-              fetchUsersByOrganizationId(organizationId)
-            );
-            if (fetchUsersByOrganizationId.fulfilled.match(usersResponse)) {
-              const teamMemberIds = new Set(
-                teamMembers.map((member) => member._id)
-              );
-              const notTeamMembers = usersResponse.payload.filter(
-                (user) => user._id && !teamMemberIds.has(user._id)
-              );
-              setUserList(notTeamMembers);
-            } else {
-              setError("Failed to fetch user list");
-            }
-          }
-
-          // Fetch tasks for the project
-          const tasksResponse = await dispatch(
-            fetchTasksByProjectId(projectId)
-          );
-          if (fetchTasksByProjectId.fulfilled.match(tasksResponse)) {
-            setTasksList(tasksResponse.payload);
-          } else {
-            setError("Failed to fetch tasks");
-          }
-
-          // Fetch files for the project
-          //   const filesResponse = await dispatch(fetchFilesByProjectId(projectId));
-          //   if (fetchFilesByProjectId.fulfilled.match(filesResponse)) {
-          //     setFilesList(filesResponse.payload);
-          //   } else {
-          //     setError("Failed to fetch files");
-          //   }
         } catch (err) {
           setError("An unexpected error occurred");
+          console.error("Error:", err);
         } finally {
           setLoading(false);
         }
@@ -262,7 +297,6 @@ const ProjectDetailPage = () => {
 
     fetchData();
   }, [dispatch, projectId, setLoading]);
-
   // Handle error state
   if (error) {
     return <div>Error: {error}</div>;
@@ -458,7 +492,7 @@ const ProjectDetailPage = () => {
       {addUserModalOpen && (
         <AddUser
           closeAddUser={closeAddUserModal}
-          onAddUser={handleAddUserToProject}
+          onAddUser={handleAddMultipleUsers}
           users={usersList}
           projectId={projectId}
         />
@@ -468,7 +502,7 @@ const ProjectDetailPage = () => {
           closeAddTask={closeAddTaskModal}
           onAddTasks={handleAddTasks}
           projectId={projectId}
-          projectUsers={projectUsers || []}
+          projectUsers={teamMembers || []}
         />
       )}
       {/*

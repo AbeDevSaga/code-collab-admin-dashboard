@@ -15,9 +15,12 @@ function users() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const usersList = useSelector((state: RootState) => state.user.users);
+  const user = useSelector((state: RootState) => state.auth.user);
   const { setLoading } = useLoading();
   const [isFetching, setIsFetching] = useState(true);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false); // State to control the modal
+  const organization = user && user.role === "Super Admin" ? user.organization : "";
+  const role = user && user.role === "Admin" ? "Super Admin" : "";
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -50,9 +53,14 @@ function users() {
   const handleSaveUser = async (newUser: TUser) => {
     try {
       setLoading(true);
+      console.log("userrrr: ", newUser)
       const resultAction = await dispatch(createUser(newUser));
       if (createUser.fulfilled.match(resultAction)) {
+        console.log("User created successfully!");
+        await dispatch(fetchAllUsers());
         setIsAddUserOpen(false);
+      } else{
+        console.log("Error creating user");
       }
     } finally {
       setLoading(false);
@@ -83,7 +91,8 @@ function users() {
         <CreateUser
           closeAddUser={handleCloseAddUser}
           onAddUser={handleSaveUser}
-          role="User"
+          orgId={organization}
+          role={role}
         />
       )}
     </div>

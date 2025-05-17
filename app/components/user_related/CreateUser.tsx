@@ -18,6 +18,7 @@ const CreateUser: React.FC<CreateUserProps> = ({
   onAddUser,
 }) => {
   // State for new user details
+  console.log("props", orgId, role);
   const [username, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");

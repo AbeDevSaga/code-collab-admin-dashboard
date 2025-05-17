@@ -94,22 +94,22 @@ const TaskTable: React.FC<TaskTableProps> = ({ onViewTask, tasks, px, py }) => {
                 <td
                   className={`px-${px} py-${py} whitespace-nowrap text-sm font-medium`}
                 >
-                  {task.taskName}
+                  {task.name}
                 </td>
                 <td
                   className={`hidden sm:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
                 >
-                  <StatusBadge status={task.status} />
+                  <StatusBadge status={task.status ?? "pending"} />
                 </td>
                 <td
                   className={`hidden md:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
                 >
-                  {formatDate(task.startDate)}
+                  {formatDate(task.startDate ?? "")}
                 </td>
                 <td
                   className={`hidden lg:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
                 >
-                  {formatDate(task.endDate)}
+                  {formatDate(task.dueDate ?? "")}
                 </td>
                 <td
                   className={`hidden xl:table-cell px-${px} py-${py} whitespace-nowrap text-sm`}
@@ -128,7 +128,10 @@ const TaskTable: React.FC<TaskTableProps> = ({ onViewTask, tasks, px, py }) => {
                           task.status === "completed"
                             ? "100%"
                             : task.status === "in-progress"
-                            ? task.percentage || "50%"
+                            ? `${Math.min(
+                                100,
+                                Math.max(0, Number(task.percentage) || 0)
+                              )}%`
                             : "0%",
                       }}
                     ></div>

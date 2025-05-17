@@ -18,6 +18,7 @@ export const rolesPermissions: Record<TRole, string[]> = {
   "Super Admin": [
     "dashboard",
     "users",
+    "organizations",
     "services",
     "projects",
     "chat-group",
@@ -28,6 +29,7 @@ export const rolesPermissions: Record<TRole, string[]> = {
   ],
   "Project Manager": [
     "dashboard",
+    "organizations",
     "users",
     "projects",
     "chat-group",

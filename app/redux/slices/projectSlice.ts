@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import { TProject } from "@/app/constants/type"; // Define TProject type for your project
+import { base64ToBlob, getMimeType } from "@/app/utils/fileUtils";
 
 const API_URL = process.env.NEXT_PUBLIC_PROJECT_API;
 
@@ -82,11 +83,36 @@ export const createProject = createAsyncThunk(
   "projects/create",
   async (projectData: Omit<TProject, "_id">, { rejectWithValue }) => {
     try {
+      console.log("project data: ", projectData);
+      const formData = new FormData();
+      // Append project data
+      formData.append("name", projectData.name);
+      formData.append("description", projectData.description || "");
+      formData.append("organization", projectData.organization || "");
+
+      // Append team members
+      formData.append("teamMembers", JSON.stringify(projectData.teamMembers));
+
+      // Append files (if they exist)
+      if (projectData.files?.length) {
+        projectData.files.forEach((file) => {
+          if (file.content) {
+            const mimeType = getMimeType(file.extension || "");
+            const blob = base64ToBlob(file.content, mimeType);
+            formData.append("files", blob, file.name); // Append as Blob
+          }
+        });
+      }
+
+      // Debug: Verify files in FormData
+      console.log("Files in FormData:", formData.getAll("files"));
+
       const response = await axios.post<TProject>(
         `${API_URL}/create`,
-        projectData,
+        formData,
         {
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${getAuthToken()}`,
           },
         }
@@ -169,7 +195,36 @@ export const addUserToProject = createAsyncThunk(
     }
   }
 );
-
+export const addMultipleUsersToProject = createAsyncThunk(
+  "projects/addMultipleUsers",
+  async (
+    {
+      projectId,
+      users,
+      addedBy,
+    }: {
+      projectId: string;
+      users: Array<{ userId: string; role?: string }>;
+      addedBy: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/add_multiple_users/${projectId}`,
+        { users, addedBy },
+        {
+          headers: {
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 export const removeUserFromProject = createAsyncThunk(
   "projects/removeUser",
   async (
@@ -309,6 +364,37 @@ const projectSlice = createSlice({
       )
       .addCase(
         addUserToProject.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
+      .addCase(addMultipleUsersToProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        addMultipleUsersToProject.fulfilled,
+        (state, action: PayloadAction<TProject>) => {
+          state.loading = false;
+          // Update current project if it's the one being modified
+          if (
+            state.currentProject &&
+            state.currentProject._id === action.payload._id
+          ) {
+            state.currentProject = action.payload;
+          }
+          // Update the project in projects array
+          const index = state.projects.findIndex(
+            (project) => project._id === action.payload._id
+          );
+          if (index !== -1) {
+            state.projects[index] = action.payload;
+          }
+        }
+      )
+      .addCase(
+        addMultipleUsersToProject.rejected,
         (state, action: PayloadAction<any>) => {
           state.loading = false;
           state.error = action.payload;

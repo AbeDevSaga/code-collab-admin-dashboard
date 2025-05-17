@@ -12,6 +12,7 @@ import {
 import ProjectCard from "@/app/components/project_related/ProjectCard";
 import AddProject from "@/app/components/project_related/AddProject";
 import { useRouter } from "next/navigation";
+import { fetchAllUsers } from "@/app/redux/slices/userSlice";
 
 function Projects() {
   const router = useRouter();
@@ -19,11 +20,14 @@ function Projects() {
   const projectList = useSelector(
     (state: RootState) => state.project.projects
   );
+  const user = useSelector((state: RootState)=>state.auth.user)
+  const users = useSelector((state: RootState)=>state.user.users)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Fetch projects on component mount
   useEffect(() => {
     dispatch(fetchAllProjects());
+    dispatch(fetchAllUsers());
   }, [dispatch]);
 
   // Open the modals
@@ -34,13 +38,13 @@ function Projects() {
   // Handle modal actions
   const handleAddProject = async (newProject: TProject) => {
     console.log("Adding new Project...", newProject);
-    // const resultAction = await dispatch(createProject(newProject));
-    // if (createProject.fulfilled.match(resultAction)) {
-    //   console.log("Project added successfully:", resultAction.payload);
-    //   setIsAddModalOpen(false);
-    // } else {
-    //   console.error("Failed to add Project:", resultAction.payload);
-    // }
+    const resultAction = await dispatch(createProject(newProject));
+    if (createProject.fulfilled.match(resultAction)) {
+      console.log("Project added successfully:", resultAction.payload);
+      setIsAddModalOpen(false);
+    } else {
+      console.error("Failed to add Project:", resultAction.payload);
+    }
   };
 
   // Close the modals
@@ -79,6 +83,8 @@ function Projects() {
         <AddProject
           closeAddProject={closeAddModal}
           onAddProject={handleAddProject}
+          organization={user?.organization || ""}
+          users={users}
         />
       )}
     </div>

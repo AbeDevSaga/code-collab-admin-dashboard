@@ -2,8 +2,8 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TOrganization, TProject, TRole, TUser } from "@/app/constants/type";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/app/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/app/redux/store";
 import {
   deleteOrganization,
   fetchOrganizationById,
@@ -14,7 +14,10 @@ import ActionButton from "@/app/components/ActionButton";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import UpdateOrganization from "@/app/components/org_related/UpdateOrganization";
 import DeleteOrganization from "@/app/components/org_related/DeleteOrganization";
-import { createUser, fetchUsersByOrganizationId } from "@/app/redux/slices/userSlice";
+import {
+  createUser,
+  fetchUsersByOrganizationId,
+} from "@/app/redux/slices/userSlice";
 import UserTable from "@/app/components/user_related/UsersTable";
 import AddUser from "@/app/components/user_related/AddUser";
 import { useRouter } from "next/navigation";
@@ -32,6 +35,7 @@ const OrganizationDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState("");
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const [showActions, setShowActions] = useState(false);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -53,10 +57,10 @@ const OrganizationDetailsPage = () => {
   };
 
   // Handle modal actions
-  const handleOpenAddAdmin = ()=> {
+  const handleOpenAddAdmin = () => {
     setUserRole("Super Admin");
     setAddUserModalOpen(true);
-  }
+  };
   const handleAddUser = async (newUser: TUser) => {
     console.log("New User Data:", newUser);
     // Add admin logic here
@@ -132,22 +136,22 @@ const OrganizationDetailsPage = () => {
             setError("Failed to fetch organization data");
           }
 
-          const userResponse = await dispatch(
+          if(user?.role === "Admin"){const userResponse = await dispatch(
             fetchUsersByOrganizationId(orgId)
           );
           if (fetchUsersByOrganizationId.fulfilled.match(userResponse)) {
             setUserList(userResponse.payload);
           } else {
             setError("Failed to fetch user list");
-          }
+          }}
 
-          const projectResponse = await dispatch(fetchProjects(orgId));
+          if(user?.role === "Admin"){const projectResponse = await dispatch(fetchProjects(orgId));
           if (fetchProjects.fulfilled.match(projectResponse)) {
             setProjectList(projectResponse.payload);
             console.log("projectList: ", projectResponse.payload);
           } else {
             setError("Failed to fetch user list");
-          }
+          }}
         } catch (err) {
           setError("An unexpected error occurred");
         } finally {
@@ -338,47 +342,52 @@ const OrganizationDetailsPage = () => {
         </div>
       </div>
       {/* Users Section */}
-      <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
-        <div className="flex items-center pb-2">
-          <SectionHeader sectionKey="users" />
-          <div className="w-auto">
-            <ActionButton
-              label="Create Users"
-              onClick={openAddUserModal}
-              icon="user"
-            />
+      {user?.role === "Admin" && (
+        <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
+          <div className="flex items-center pb-2">
+            <SectionHeader sectionKey="users" />
+            <div className="w-auto">
+              <ActionButton
+                label="Create Users"
+                onClick={openAddUserModal}
+                icon="user"
+              />
+            </div>
           </div>
+          {usersList && usersList.length > 0 && (
+            <UserTable
+              onViewUser={handleViewUser}
+              users={usersList}
+              px="2"
+              py="2"
+            />
+          )}
         </div>
-        {usersList && usersList.length > 0 && (
-          <UserTable
-            onViewUser={handleViewUser}
-            users={usersList}
-            px="2"
-            py="2"
-          />
-        )}
-      </div>
+      )}
       {/* Projects Section */}
-      <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
-        <div className="flex items-center pb-2">
-          <SectionHeader sectionKey="projects" />
-          <div className="w-auto">
-            <ActionButton
-              label="Add Project"
-              onClick={openAddUserModal}
-              icon="user"
-            />
+      {user?.role === "Admin" && (
+        <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
+          <div className="flex items-center pb-2">
+            <SectionHeader sectionKey="projects" />
+            <div className="w-auto">
+              <ActionButton
+                label="Add Project"
+                onClick={openAddUserModal}
+                icon="user"
+              />
+            </div>
           </div>
+          {projectList && projectList.length > 0 && (
+            <ProjectTable
+              onViewProject={handleViewProject}
+              projects={projectList}
+              px="2"
+              py="2"
+            />
+          )}
         </div>
-        {projectList && projectList.length > 0 && (
-          <ProjectTable
-            onViewProject={handleViewProject}
-            projects={projectList}
-            px="2"
-            py="2"
-          />
-        )}
-      </div>
+      )}
+
       {addUserModalOpen && (
         <CreateUser
           closeAddUser={closeAddUserModal}
