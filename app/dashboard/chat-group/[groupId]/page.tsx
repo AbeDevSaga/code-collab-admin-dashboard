@@ -77,7 +77,7 @@ const ChatGroup: React.FC = () => {
     <div className="w-full h-full flex flex-col bg-white overflow-hidden">
       {/* Header */}
       <div className="w-full h-20 flex-shrink-0 flex items-center justify-between border-b">
-        <ChatTab toggleSidebar={toggleSidebar} />
+        <ChatTab name={currentChat?.name || ""} toggleSidebar={toggleSidebar} />
       </div>
 
       {/* Main Content */}
