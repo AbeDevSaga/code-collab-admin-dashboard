@@ -76,7 +76,7 @@ const MessageBox: React.FC<TypeMessageInputProps> = ({
           ref={fileInputRef}
           onChange={handleFileChange}
           className="hidden"
-          accept="image/*, .pdf, .doc, .docx, .txt" // Specify accepted file types
+          accept="image/*, .pdf, .doc, .docx, .txt" 
         />
         <button
           type="button"

@@ -240,8 +240,8 @@ export type TTask = {
   completedAt?: Date;
 
   tags?: string[];
-  estimatedTime?: number; // in hours (Estimated time to complete the task)
-  actualTime?: number; // in hours (Actual time spent on the task)
+  estimatedTime?: number; 
+  actualTime?: number; 
 
   comments?: string[];
   attachments?: string[];

@@ -35,6 +35,7 @@ import {
 } from "@/app/redux/slices/taskSlice";
 import { transformTeamMembers } from "@/app/lib/helperFunctions";
 import UserTable from "@/app/components/user_related/UsersTable";
+import GanttChart from "@/app/components/task_related/GanttChart";
 
 const ProjectDetailPage = () => {
   const router = useRouter();
@@ -445,6 +446,12 @@ const ProjectDetailPage = () => {
         )}
       </div>
 
+      {/* Assigned Users Section */}
+      {tasksList && tasksList.length > 0 && (
+        <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
+          <GanttChart tasks={tasksList} />
+        </div>
+      )}
       {/* Tasks Section */}
       <div className="px-6 py-2 w-full h-full overflow-hidden relative bg-white rounded-lg shadow-md">
         <div className="flex items-center pb-2">

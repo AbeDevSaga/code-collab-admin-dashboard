@@ -1,6 +1,6 @@
 "use client";
 import { TMessage } from "@/app/constants/type";
-import { RootState, AppDispatch } from "@/app/redux/store";
+import { RootState} from "@/app/redux/store";
 import { formatDate } from "@/app/utils/dateUtils";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -14,7 +14,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 scroll-bar  p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message._id}
