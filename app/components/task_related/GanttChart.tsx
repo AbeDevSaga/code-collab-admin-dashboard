@@ -92,7 +92,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks }) => {
   };
 
   return (
-    <div className="w-full p-4 bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="w-full p-4 bg-white rounded-lg shadow-md overflow-hidden no-scrollbar">
       <h2 className="text-left text-primary font-bold">Project Gantt Chart</h2>
 
       {/* Timeline and Tasks Container */}

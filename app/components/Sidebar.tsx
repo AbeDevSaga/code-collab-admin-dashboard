@@ -1,6 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { sidebarItems } from "../constants/sidebarItems";
+import React, { useEffect } from "react";
 import NavItem from "./NavItem";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { getFilteredSidebarItems } from "../lib/sidebarUtils";
 import { TRole } from "../constants/type";
+import Logo from "./Logo";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -22,7 +22,7 @@ export default function Sidebar() {
     }
   }, [userRole, router]);
 
-  console.log("user: ", user)
+  console.log("user: ", user);
 
   // Get filtered sidebar items based on the user's role
   const filteredSidebarItems = getFilteredSidebarItems(userRole as TRole);
@@ -31,7 +31,12 @@ export default function Sidebar() {
     <div className="flex w-full flex-col h-full">
       {/* Logo Section */}
       <div className="bg-gray-100 p-4 border-b border-gray-200">
-        <h2 className="m-0">Logo</h2>
+        <Link
+          href="/"
+          className="text-2xl font-bold text-white whitespace-nowrap"
+        >
+          <Logo />
+        </Link>
       </div>
 
       {/* Scrollable Sidebar Items */}

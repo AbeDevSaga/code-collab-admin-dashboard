@@ -25,7 +25,6 @@ export const rolesPermissions: Record<TRole, string[]> = {
     "notifications",
     "messages",
     "reports-bans",
-    "manage-admins",
   ],
   "Project Manager": [
     "dashboard",
